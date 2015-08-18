@@ -54,6 +54,11 @@ func (this *Reader) StringsFatal(key string) []string {
 
 //////////////////////////////////////////////////////////////
 
+func (this *Reader) Ints(key string) []int {
+	value, _ := this.IntsError(key)
+	return value
+}
+
 func (this *Reader) IntsError(key string) ([]int, error) {
 	raw, err := this.StringsError(key)
 	if err != nil {
@@ -69,6 +74,18 @@ func (this *Reader) IntsError(key string) ([]int, error) {
 	}
 
 	return ints, nil
+}
+
+func (this *Reader) IntsPanic(key string) []int {
+	if value, err := this.IntsError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) IntsFatal(key string) []int {
+	return []int{}
 }
 
 //////////////////////////////////////////////////////////////

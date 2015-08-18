@@ -106,6 +106,64 @@ func (this *ReaderTestFixture) TestIntsError_MalformedValue() {
 	this.So(err, should.Equal, MalformedValueError)
 }
 
+func (this *ReaderTestFixture) TestInts_Found() {
+	value := this.reader.Ints("int")
+
+	this.So(value, should.Resemble, []int{42})
+}
+func (this *ReaderTestFixture) TestInts_NotFound() {
+	value := this.reader.Ints("qrew")
+
+	this.So(value, should.BeNil)
+}
+func (this *ReaderTestFixture) TestInts_MalformedValue() {
+	value := this.reader.Ints("int-bad")
+
+	this.So(value, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestIntsPanic_Found() {
+	value := this.reader.IntsPanic("int")
+
+	this.So(value, should.Resemble, []int{42})
+}
+func (this *ReaderTestFixture) TestIntsPanic_NotFound() {
+	this.So(func() { this.reader.IntsPanic("blah blah") }, should.Panic)
+}
+func (this *ReaderTestFixture) TestIntsPanic_MalformedValue() {
+	this.So(func() { this.reader.IntsPanic("int-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestIntsFatal_Found() {
+	value := this.reader.IntsFatal("int")
+
+	this.So(value, should.Resemble, []int{42})
+}
+func (this *ReaderTestFixture) TestIntsFatal_NotFound() {
+	// var err error
+	// fatal = func(e error) { err = e }
+	// this.reader.StringsFatal("balhaafslk")
+	// this.So(err, should.NotBeNil)
+
+}
+func (this *ReaderTestFixture) TestIntsFatal_MalformedValue() {
+
+}
+
+func (this *ReaderTestFixture) TestIntsDefault_Found() {
+	// value := this.reader.StringsDefault("string", []string{"default"})
+
+	// this.So(value, should.Resemble, []string{"asdf"})
+}
+func (this *ReaderTestFixture) TestIntsDefault_NotFound() {
+	// value := this.reader.StringsDefault("blahblah", []string{"default"})
+
+	// this.So(value, should.Resemble, []string{"default"})
+}
+func (this *ReaderTestFixture) TestIntsDefault_MalformedValue() {
+
+}
+
 //////////////////////////////////////////////////////////////
 
 type FakeSource struct {
