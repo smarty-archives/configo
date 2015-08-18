@@ -53,6 +53,14 @@ func (this *EnvironmentSourceFixture) TestChecksLowerCaseKey() {
 	this.So(err, should.BeNil)
 }
 
+func (this *EnvironmentSourceFixture) TestInvalidCharactersReplacedWithUnderscore() {
+	setEnvironment("newton_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0", "value")
+	values, err := this.source.Strings("0-0.0~0!0@0#0%0^0&0*0(0)0/0\\0")
+
+	this.So(values, should.Resemble, []string{"value"})
+	this.So(err, should.BeNil)
+}
+
 func setEnvironment(key, value string) {
 	os.Setenv(key, value)
 }

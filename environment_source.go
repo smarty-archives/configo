@@ -3,6 +3,7 @@ package newton
 import (
 	"os"
 	"strings"
+	"unicode"
 )
 
 type EnvironmentSource struct {
@@ -22,7 +23,7 @@ func (this *EnvironmentSource) Name() string {
 }
 
 func (this *EnvironmentSource) Strings(key string) ([]string, error) {
-	key = this.prefix + key
+	key = this.prefix + sanitizeKey(key)
 
 	if value := os.Getenv(key); len(value) > 0 {
 		return strings.Split(value, this.separator), nil
@@ -37,4 +38,19 @@ func (this *EnvironmentSource) Strings(key string) ([]string, error) {
 	}
 
 	return nil, KeyNotFoundError
+}
+func sanitizeKey(key string) string {
+	sanitized := ""
+
+	for _, character := range key {
+		if unicode.IsDigit(character) {
+			sanitized += string(character)
+		} else if unicode.IsLetter(character) {
+			sanitized += string(character)
+		} else {
+			sanitized += "_"
+		}
+	}
+
+	return sanitized
 }
