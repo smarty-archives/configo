@@ -103,4 +103,14 @@ func (this *Reader) IntsDefault(key string, Default []int) []int {
 
 //////////////////////////////////////////////////////////////
 
+func (this *Reader) String(key string) string {
+	if value, err := this.StringsError(key); err != nil {
+		return ""
+	} else {
+		return value[0]
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
 var fatal = func(err error) { log.Fatal(err) }

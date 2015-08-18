@@ -163,6 +163,19 @@ func (this *ReaderTestFixture) TestIntsDefault_NotFound() {
 
 //////////////////////////////////////////////////////////////
 
+func (this *ReaderTestFixture) TestString_Found() {
+	value := this.reader.String("string")
+
+	this.So(value, should.Equal, "asdf")
+}
+func (this *ReaderTestFixture) TestString_NotFound() {
+	value := this.reader.String("blahblah")
+
+	this.So(value, should.BeEmpty)
+}
+
+//////////////////////////////////////////////////////////////
+
 type FakeSource struct {
 	key   string
 	value []string
