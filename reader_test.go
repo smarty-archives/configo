@@ -91,14 +91,12 @@ func (this *ReaderTestFixture) TestIntsError_Found() {
 	this.So(value, should.Resemble, []int{42})
 	this.So(err, should.BeNil)
 }
-
 func (this *ReaderTestFixture) TestIntsError_NotFound() {
 	value, err := this.reader.IntsError("asdf")
 
 	this.So(value, should.BeNil)
 	this.So(err, should.Equal, KeyNotFoundError)
 }
-
 func (this *ReaderTestFixture) TestIntsError_MalformedValue() {
 	value, err := this.reader.IntsError("int-bad")
 
@@ -140,28 +138,27 @@ func (this *ReaderTestFixture) TestIntsFatal_Found() {
 	this.So(value, should.Resemble, []int{42})
 }
 func (this *ReaderTestFixture) TestIntsFatal_NotFound() {
-	// var err error
-	// fatal = func(e error) { err = e }
-	// this.reader.StringsFatal("balhaafslk")
-	// this.So(err, should.NotBeNil)
-
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.IntsFatal("balhaafslk")
+	this.So(err, should.NotBeNil)
 }
 func (this *ReaderTestFixture) TestIntsFatal_MalformedValue() {
-
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.IntsFatal("int-bad")
+	this.So(err, should.NotBeNil)
 }
 
 func (this *ReaderTestFixture) TestIntsDefault_Found() {
-	// value := this.reader.StringsDefault("string", []string{"default"})
+	value := this.reader.IntsDefault("int", []int{84})
 
-	// this.So(value, should.Resemble, []string{"asdf"})
+	this.So(value, should.Resemble, []int{42})
 }
 func (this *ReaderTestFixture) TestIntsDefault_NotFound() {
-	// value := this.reader.StringsDefault("blahblah", []string{"default"})
+	value := this.reader.IntsDefault("missing", []int{84})
 
-	// this.So(value, should.Resemble, []string{"default"})
-}
-func (this *ReaderTestFixture) TestIntsDefault_MalformedValue() {
-
+	this.So(value, should.Resemble, []int{84})
 }
 
 //////////////////////////////////////////////////////////////

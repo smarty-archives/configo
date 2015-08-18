@@ -85,7 +85,20 @@ func (this *Reader) IntsPanic(key string) []int {
 }
 
 func (this *Reader) IntsFatal(key string) []int {
-	return []int{}
+	if value, err := this.IntsError(key); err != nil {
+		fatal(err)
+		return nil
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) IntsDefault(key string, Default []int) []int {
+	if value, err := this.IntsError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
 }
 
 //////////////////////////////////////////////////////////////
