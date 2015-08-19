@@ -16,12 +16,12 @@ var productionEnvironment = func() bool {
 
 // A conditional source which determine if we are running
 // in a development environment
-func NewDevelopmentSource() *ConditionalSource {
+func FromDevelopmentOnlyDefaults() *ConditionalSource {
 	return NewConditionalSource(developmentEnvironment)
 }
 
 // If we are running in a production (non-development) environment
 // the specified JSON filename is required; otherwise it's optional.
-func FromProductionJSONFile(filename string) *JSONSource {
+func FromRequiredInProductionJSONFile(filename string) *JSONSource {
 	return FromConditionalJSONFile(filename, productionEnvironment)
 }
