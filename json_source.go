@@ -39,6 +39,9 @@ func (this *JSONSource) Name() string {
 }
 
 func (this *JSONSource) Values(key string) ([]string, error) {
+	// TODO: if contents of key contain a hypen, change it to an underscore?
+	// FUTURE: split on / character to indicate another level
+
 	if item, found := this.values[key]; found {
 		return toStrings(item), nil
 	}
