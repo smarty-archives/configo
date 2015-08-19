@@ -17,6 +17,7 @@ func (this *ReaderTestFixture) Setup() {
 		&FakeSource{},
 		&FakeSource{key: "string", value: []string{"asdf"}},
 		&FakeSource{key: "string", value: []string{"qwer"}},
+		&FakeSource{key: "string-no-values", value: []string{}},
 		&FakeSource{key: "int", value: []string{"42"}},
 		&FakeSource{key: "int", value: []string{"-1"}},
 		&FakeSource{key: "int-bad", value: []string{"not an integer"}},
@@ -86,6 +87,75 @@ func (this *ReaderTestFixture) TestStringsDefault_NotFound() {
 	value := this.reader.StringsDefault("blahblah", []string{"default"})
 
 	this.So(value, should.Resemble, []string{"default"})
+}
+
+//////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestString_Found() {
+	value := this.reader.String("string")
+
+	this.So(value, should.Equal, "asdf")
+}
+func (this *ReaderTestFixture) TestString_NotFound() {
+	value := this.reader.String("blahblah")
+
+	this.So(value, should.BeEmpty)
+}
+
+func (this *ReaderTestFixture) TestStringError_Found() {
+	value, err := this.reader.StringError("string")
+
+	this.So(value, should.Resemble, "asdf")
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestStringError_NotFound() {
+	value, err := this.reader.StringError("81")
+
+	this.So(value, should.Equal, "")
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestStringError_FoundButNoValuesProvided() {
+	value, err := this.reader.StringError("string-no-values")
+
+	this.So(value, should.Equal, "")
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestStringPanic_Found() {
+	value := this.reader.StringPanic("string")
+
+	this.So(value, should.Resemble, "asdf")
+}
+
+func (this *ReaderTestFixture) TestStringPanic_NotFound() {
+	this.So(func() { this.reader.StringPanic("blahblah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestStringFatal_Found() {
+	value := this.reader.StringFatal("string")
+
+	this.So(value, should.Resemble, "asdf")
+}
+
+func (this *ReaderTestFixture) TestStringFatal_NotFound() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.StringFatal("balhaafslk")
+	this.So(err, should.NotBeNil)
+}
+
+func (this *ReaderTestFixture) TestStringDefault_Found() {
+	value := this.reader.StringDefault("string", "default")
+
+	this.So(value, should.Resemble, "asdf")
+}
+
+func (this *ReaderTestFixture) TestStringDefault_NotFound() {
+	value := this.reader.StringDefault("blahblah", "default")
+
+	this.So(value, should.Resemble, "default")
 }
 
 //////////////////////////////////////////////////////////////
@@ -173,19 +243,6 @@ func (this *ReaderTestFixture) TestIntsDefault_NotFound() {
 	value := this.reader.IntsDefault("missing", []int{84})
 
 	this.So(value, should.Resemble, []int{84})
-}
-
-//////////////////////////////////////////////////////////////
-
-func (this *ReaderTestFixture) TestString_Found() {
-	value := this.reader.String("string")
-
-	this.So(value, should.Equal, "asdf")
-}
-func (this *ReaderTestFixture) TestString_NotFound() {
-	value := this.reader.String("blahblah")
-
-	this.So(value, should.BeEmpty)
 }
 
 //////////////////////////////////////////////////////////////

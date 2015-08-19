@@ -54,6 +54,51 @@ func (this *Reader) StringsFatal(key string) []string {
 
 //////////////////////////////////////////////////////////////
 
+func (this *Reader) String(key string) string {
+	if value, err := this.StringError(key); err != nil {
+		return ""
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) StringError(key string) (string, error) {
+	if value, err := this.StringsError(key); err != nil {
+		return "", err
+	} else if len(value) == 0 {
+		return "", nil
+	} else {
+		return value[0], nil
+	}
+}
+
+func (this *Reader) StringPanic(key string) string {
+	if value, err := this.StringError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) StringDefault(key string, Default string) string {
+	if value, err := this.StringError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) StringFatal(key string) string {
+	if value, err := this.StringError(key); err != nil {
+		fatal(err)
+		return ""
+	} else {
+		return value
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
 func (this *Reader) Ints(key string) []int {
 	value, _ := this.IntsError(key)
 	return value
@@ -98,16 +143,6 @@ func (this *Reader) IntsDefault(key string, Default []int) []int {
 		return Default
 	} else {
 		return value
-	}
-}
-
-//////////////////////////////////////////////////////////////
-
-func (this *Reader) String(key string) string {
-	if value, err := this.StringsError(key); err != nil {
-		return ""
-	} else {
-		return value[0]
 	}
 }
 
