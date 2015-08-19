@@ -17,6 +17,14 @@ func FromJSONFile(filename string) *JSONSource {
 		return FromJSONContent(contents)
 	}
 }
+func FromOptionalJSONFile(filename string) *JSONSource {
+	if contents, _ := ioutil.ReadFile(filename); len(contents) > 0 {
+		return FromJSONContent(contents)
+	}
+
+	return nil
+}
+
 func FromJSONContent(raw []byte) *JSONSource {
 	values := make(map[string]interface{})
 	if err := json.Unmarshal(raw, &values); err != nil {
