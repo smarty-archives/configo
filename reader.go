@@ -3,6 +3,7 @@ package newton
 import (
 	"log"
 	"net/url"
+	"reflect"
 	"strconv"
 )
 
@@ -16,7 +17,7 @@ func NewReader(sources ...Source) *Reader {
 	filtered := []Source{}
 
 	for _, source := range sources {
-		if source == nil {
+		if source == nil || reflect.ValueOf(source).IsNil() {
 			continue
 		}
 
