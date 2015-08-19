@@ -12,8 +12,9 @@ func NewConditionalSource(condition func() bool) *ConditionalSource {
 	}
 }
 
-func (this *ConditionalSource) Add(key string, values ...interface{}) {
+func (this *ConditionalSource) Add(key string, values ...interface{}) *ConditionalSource {
 	this.inner.Add(key, values...)
+	return this
 }
 
 func (this *ConditionalSource) Strings(key string) ([]string, error) {

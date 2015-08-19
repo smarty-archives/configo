@@ -16,7 +16,7 @@ func NewDefaultSource() *DefaultSource {
 	}
 }
 
-func (this *DefaultSource) Add(key string, values ...interface{}) {
+func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource {
 	contents := this.settings[key]
 
 	for _, value := range values {
@@ -24,6 +24,7 @@ func (this *DefaultSource) Add(key string, values ...interface{}) {
 	}
 
 	this.settings[key] = contents
+	return this
 }
 func convertToString(value interface{}) string {
 	switch typed := value.(type) {
