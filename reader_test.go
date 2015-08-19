@@ -1,6 +1,8 @@
 package newton
 
 import (
+	"net/url"
+
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
@@ -23,6 +25,8 @@ func (this *ReaderTestFixture) Setup() {
 		&FakeSource{key: "int-bad", value: []string{"not an integer"}},
 		&FakeSource{key: "bool", value: []string{"true"}},
 		&FakeSource{key: "bool-bad", value: []string{"not a bool"}},
+		&FakeSource{key: "url", value: []string{"http://www.google.com"}},
+		&FakeSource{key: "url-bad", value: []string{"%%%%%%"}}, // not a url
 	}
 
 	this.reader = NewReader(this.sources...)
@@ -438,6 +442,96 @@ func (this *FakeSource) Strings(key string) ([]string, error) {
 		return this.value, nil
 	}
 	return nil, KeyNotFoundError
+}
+
+//////////////////////////////////////////////////////////////
+
+var _validURL, _ = url.Parse("http://www.google.com")
+var validURL = *_validURL
+
+func (this *ReaderTestFixture) TestURLSError_Found() {
+	value, err := this.reader.URLSError("url")
+
+	this.So(value, should.Resemble, []url.URL{validURL})
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestURLSError_NotFound() {
+	value, err := this.reader.URLSError("asdf")
+
+	this.So(value, should.BeNil)
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestURLSError_MalformedValue() {
+	value, err := this.reader.URLSError("url-bad")
+
+	this.So(value, should.BeNil)
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestURLS_Found() {
+	value := this.reader.URLS("url")
+
+	this.So(value, should.Resemble, []url.URL{validURL})
+}
+
+func (this *ReaderTestFixture) TestURLS_NotFound() {
+	value := this.reader.URLS("qrew")
+
+	this.So(value, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestURLS_MalformedValue() {
+	value := this.reader.URLS("url-bad")
+
+	this.So(value, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestURLSPanic_Found() {
+	value := this.reader.URLSPanic("url")
+
+	this.So(value, should.Resemble, []url.URL{validURL})
+}
+
+func (this *ReaderTestFixture) TestURLSPanic_NotFound() {
+	this.So(func() { this.reader.URLSPanic("blah blah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestURLSPanic_MalformedValue() {
+	this.So(func() { this.reader.URLSPanic("url-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestURLSFatal_Found() {
+	value := this.reader.URLSFatal("url")
+
+	this.So(value, should.Resemble, []url.URL{validURL})
+}
+
+func (this *ReaderTestFixture) TestURLSFatal_NotFound() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.URLSFatal("balhaafslk")
+	this.So(err, should.NotBeNil)
+}
+
+func (this *ReaderTestFixture) TestURLSFatal_MalformedValue() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.URLSFatal("url-bad")
+	this.So(err, should.NotBeNil)
+}
+
+func (this *ReaderTestFixture) TestURLSDefault_Found() {
+	value := this.reader.URLSDefault("url", []url.URL{})
+
+	this.So(value, should.Resemble, []url.URL{validURL})
+}
+
+func (this *ReaderTestFixture) TestURLSDefault_NotFound() {
+	value := this.reader.URLSDefault("missing", []url.URL{url.URL{}})
+
+	this.So(value, should.Resemble, []url.URL{url.URL{}})
 }
 
 //////////////////////////////////////////////////////////////

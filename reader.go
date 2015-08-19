@@ -2,6 +2,7 @@ package newton
 
 import (
 	"log"
+	"net/url"
 	"strconv"
 )
 
@@ -284,6 +285,66 @@ func (this *Reader) BoolFatal(key string) bool {
 // if the key does not exist or the value could not be parsed as a bool.
 func (this *Reader) BoolDefault(key string, Default bool) bool {
 	if value, err := this.BoolError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
+// URLS returns all URL values associated with the given key or returns the zero value
+// if the key does not exist or the value could not be parsed as a URL.
+func (this *Reader) URLS(key string) []url.URL {
+	value, _ := this.URLSError(key)
+	return value
+}
+
+// URLSError returns all URL values associated with the given key with an error
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLSError(key string) ([]url.URL, error) {
+	raw, err := this.StringsError(key)
+	if err != nil {
+		return nil, err
+	}
+
+	urls := make([]url.URL, len(raw))
+	for i, r := range raw {
+		parsed, err := url.Parse(r)
+		if err != nil {
+			return nil, MalformedValueError
+		}
+		urls[i] = *parsed
+	}
+
+	return urls, nil
+}
+
+// URLSPanic returns all URL values associated with the given key or panics
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLSPanic(key string) []url.URL {
+	if value, err := this.URLSError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+// URLSFatal returns all URL values associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLSFatal(key string) []url.URL {
+	if value, err := this.URLSError(key); err != nil {
+		fatal(err)
+		return nil
+	} else {
+		return value
+	}
+}
+
+// URLSDefault returns all URL values associated with the given key or returns provided defaults
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLSDefault(key string, Default []url.URL) []url.URL {
+	if value, err := this.URLSError(key); err != nil {
 		return Default
 	} else {
 		return value
