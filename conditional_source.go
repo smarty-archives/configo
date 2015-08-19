@@ -2,8 +2,6 @@ package newton
 
 import (
 	"net/url"
-	"os"
-	"runtime"
 	"strconv"
 	"time"
 )
@@ -11,13 +9,6 @@ import (
 type ConditionalSource struct {
 	condition func() bool
 	settings  map[string][]string
-}
-
-func NewDevelopmentSource() *ConditionalSource {
-	return NewConditionalSource(func() bool {
-		hostname, _ := os.Hostname()
-		return runtime.GOOS == "darwin" || hostname == "vagrant"
-	})
 }
 
 func NewConditionalSource(condition func() bool) *ConditionalSource {

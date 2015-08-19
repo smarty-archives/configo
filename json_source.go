@@ -21,6 +21,16 @@ func FromJSONFile(filename string) *JSONSource {
 	}
 }
 
+// If the provided condition returns true, the specified filename
+// is required and must be found; otherwise loading the file is optional.
+func FromConditionalJSONFile(filename string, condition func() bool) *JSONSource {
+	if condition() {
+		return FromJSONFile(filename)
+	}
+
+	return FromOptionalJSONFile(filename)
+}
+
 // FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is not found.
 func FromOptionalJSONFile(filename string) *JSONSource {
 	if contents, _ := ioutil.ReadFile(filename); len(contents) > 0 {
