@@ -6,17 +6,27 @@ import (
 	"unicode"
 )
 
+// EnvironmentSource reads key-value pairs from the environment.
 type EnvironmentSource struct {
 	prefix    string
 	separator string
 }
 
+// FromEnvironment creates an envirnoment source capable of
+// parsing values separated by the pipe character.
 func FromEnvironment() *EnvironmentSource {
 	return FromEnvironmentCustomSeparator("", "|")
 }
+
+// FromEnvironmentWithPrefix creates an envirnoment source capable of:
+// - reading values with keys all beginning with the provided prefix,
+// - parsing values separated by the pipe character.
 func FromEnvironmentWithPrefix(prefix string) *EnvironmentSource {
 	return FromEnvironmentCustomSeparator(prefix, "|")
 }
+
+// FromEnvironmentWithPrefix creates an envirnoment source capable of
+// parsing values separated by the specified character.
 func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource {
 	return &EnvironmentSource{prefix: prefix, separator: separator}
 }

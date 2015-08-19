@@ -54,7 +54,7 @@ func (this *JSONSourceFixture) TestReadMultipleValues() {
 func (this *JSONSourceFixture) assertSuccess(raw, key string, expectedValues ...string) {
 	source := FromJSONContent([]byte(raw))
 
-	values, err := source.Values(key)
+	values, err := source.Strings(key)
 
 	this.So(values, should.Resemble, expectedValues)
 	this.So(err, should.BeNil)
@@ -62,7 +62,7 @@ func (this *JSONSourceFixture) assertSuccess(raw, key string, expectedValues ...
 func (this *JSONSourceFixture) assertFailure(raw, key string, expectedError error) {
 	source := FromJSONContent([]byte(raw))
 
-	values, err := source.Values(key)
+	values, err := source.Strings(key)
 
 	this.So(values, should.BeEmpty)
 	this.So(err, should.Equal, expectedError)

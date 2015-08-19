@@ -6,10 +6,13 @@ import (
 	"strconv"
 )
 
+// JSONSOurce houses key-value pairs unmarshaled from JSON data.
 type JSONSource struct {
 	values map[string]interface{}
 }
 
+// FromJSONFile reads and unmarshals the file at the provided path into a JSONSource.
+// Any resulting error results in a panic.
 func FromJSONFile(filename string) *JSONSource {
 	if contents, err := ioutil.ReadFile(filename); err != nil {
 		panic(err)
@@ -17,6 +20,8 @@ func FromJSONFile(filename string) *JSONSource {
 		return FromJSONContent(contents)
 	}
 }
+
+// FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is not found.
 func FromOptionalJSONFile(filename string) *JSONSource {
 	if contents, _ := ioutil.ReadFile(filename); len(contents) > 0 {
 		return FromJSONContent(contents)
@@ -25,6 +30,8 @@ func FromOptionalJSONFile(filename string) *JSONSource {
 	return nil
 }
 
+// FromJSONContent unmarshals the provided json content into a JSONSource.
+// Any resulting error results in a panic.
 func FromJSONContent(raw []byte) *JSONSource {
 	values := make(map[string]interface{})
 	if err := json.Unmarshal(raw, &values); err != nil {
@@ -38,7 +45,7 @@ func (this *JSONSource) Name() string {
 	return "json-file"
 }
 
-func (this *JSONSource) Values(key string) ([]string, error) {
+func (this *JSONSource) Strings(key string) ([]string, error) {
 	// TODO: if contents of key contain a hypen, change it to an underscore?
 	// FUTURE: split on / character to indicate another level
 
@@ -48,6 +55,7 @@ func (this *JSONSource) Values(key string) ([]string, error) {
 
 	return nil, KeyNotFoundError
 }
+
 func toStrings(value interface{}) []string {
 	switch typed := value.(type) {
 	case string:
