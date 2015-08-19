@@ -188,7 +188,7 @@ func (this *Reader) Int(key string) int {
 }
 
 // IntError returns the first integer value associated with the given key with an error
-// if the key does not exist or the values could not be parsed as integers.
+// if the key does not exist or the values could not be parsed as integers (according to strconv.Atoi).
 func (this *Reader) IntError(key string) (int, error) {
 	raw, err := this.StringError(key)
 	if err != nil {
@@ -228,6 +228,62 @@ func (this *Reader) IntFatal(key string) int {
 // if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntDefault(key string, Default int) int {
 	if value, err := this.IntError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
+// Bool returns the boolean value associated with the given key or false
+// if the key does not exist or the value could not be parsed as a bool.
+func (this *Reader) Bool(key string) bool {
+	value, _ := this.BoolError(key)
+	return value
+}
+
+// BoolError returns the boolean value associated with the given key with an error
+// if the key does not exist or the value could not be parsed as a bool (according to strconv.ParseBool).
+func (this *Reader) BoolError(key string) (bool, error) {
+	raw, err := this.StringError(key)
+	if err != nil {
+		return false, err
+	}
+
+	value, err := strconv.ParseBool(raw)
+	if err != nil {
+		return false, MalformedValueError
+	}
+
+	return value, nil
+}
+
+// BoolPanic returns the boolean value associated with the given key or panics
+// if the key does not exist or the value could not be parsed as a bool.
+func (this *Reader) BoolPanic(key string) bool {
+	if value, err := this.BoolError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+// BoolFatal returns the boolean value associated with the given key or calls log.Fatal()
+// if the key does not exist or the value could not be parsed as a bool.
+func (this *Reader) BoolFatal(key string) bool {
+	if value, err := this.BoolError(key); err != nil {
+		fatal(err)
+		return false
+	} else {
+		return value
+	}
+}
+
+// BoolDefault returns the boolean value associated with the given key or returns the provided default
+// if the key does not exist or the value could not be parsed as a bool.
+func (this *Reader) BoolDefault(key string, Default bool) bool {
+	if value, err := this.BoolError(key); err != nil {
 		return Default
 	} else {
 		return value

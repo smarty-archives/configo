@@ -21,6 +21,8 @@ func (this *ReaderTestFixture) Setup() {
 		&FakeSource{key: "int", value: []string{"42"}},
 		&FakeSource{key: "int", value: []string{"-1"}},
 		&FakeSource{key: "int-bad", value: []string{"not an integer"}},
+		&FakeSource{key: "bool", value: []string{"true"}},
+		&FakeSource{key: "bool-bad", value: []string{"not a bool"}},
 	}
 
 	this.reader = NewReader(this.sources...)
@@ -330,6 +332,95 @@ func (this *ReaderTestFixture) TestIntDefault_NotFound() {
 	value := this.reader.IntDefault("missing", 84)
 
 	this.So(value, should.Resemble, 84)
+}
+
+//////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestBoolError_Found() {
+	value, err := this.reader.BoolError("bool")
+
+	this.So(value, should.BeTrue)
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestBoolError_NotFound() {
+	value, err := this.reader.BoolError("asdf")
+
+	this.So(value, should.BeFalse)
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestBoolError_MalformedValue() {
+	value, err := this.reader.BoolError("bool-bad")
+
+	this.So(value, should.BeFalse)
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestBool_Found() {
+	value := this.reader.Bool("bool")
+
+	this.So(value, should.BeTrue)
+}
+
+func (this *ReaderTestFixture) TestBool_NotFound() {
+	value := this.reader.Bool("qrew")
+
+	this.So(value, should.BeFalse)
+}
+
+func (this *ReaderTestFixture) TestBool_MalformedValue() {
+	value := this.reader.Bool("bool-bad")
+
+	this.So(value, should.BeFalse)
+}
+
+func (this *ReaderTestFixture) TestBoolPanic_Found() {
+	value := this.reader.BoolPanic("bool")
+
+	this.So(value, should.BeTrue)
+}
+
+func (this *ReaderTestFixture) TestBoolPanic_NotFound() {
+	this.So(func() { this.reader.BoolPanic("blah blah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestBoolPanic_MalformedValue() {
+	this.So(func() { this.reader.BoolPanic("bool-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestBoolFatal_Found() {
+	value := this.reader.BoolFatal("bool")
+
+	this.So(value, should.BeTrue)
+}
+
+func (this *ReaderTestFixture) TestBoolFatal_NotFound() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.BoolFatal("balhaafslk")
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+// TODO: change all Fatal_NotFound and Fatal_Malformed tests to expect specific errors.
+
+func (this *ReaderTestFixture) TestBoolFatal_MalformedValue() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.BoolFatal("bool-bad")
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestBoolDefault_Found() {
+	value := this.reader.BoolDefault("bool", false)
+
+	this.So(value, should.BeTrue)
+}
+
+func (this *ReaderTestFixture) TestBoolDefault_NotFound() {
+	value := this.reader.BoolDefault("missing", true)
+
+	this.So(value, should.BeTrue)
 }
 
 //////////////////////////////////////////////////////////////
