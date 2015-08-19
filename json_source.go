@@ -52,9 +52,8 @@ func FromJSONContent(raw []byte) *JSONSource {
 }
 
 func (this *JSONSource) Strings(key string) ([]string, error) {
-	// TODO: if contents of key contain a hypen, change it to an underscore?
+	// FUTURE: if contents of key contain a hypen, change it to an underscore?
 	// FUTURE: split on / character to indicate another level
-
 	if item, found := this.values[key]; found {
 		return toStrings(item), nil
 	}
@@ -73,23 +72,10 @@ func toStrings(value interface{}) []string {
 	case []interface{}:
 		values := []string{}
 		for _, item := range typed {
-			values = append(values, toString(item))
+			values = append(values, convertToString(item))
 		}
 		return values
 	default:
 		return nil
-	}
-}
-
-func toString(value interface{}) string {
-	switch typed := value.(type) {
-	case string:
-		return typed
-	case float64:
-		return strconv.FormatFloat(typed, 'f', -1, 64)
-	case bool:
-		return strconv.FormatBool(typed)
-	default:
-		return ""
 	}
 }
