@@ -148,4 +148,50 @@ func (this *Reader) IntsDefault(key string, Default []int) []int {
 
 //////////////////////////////////////////////////////////////
 
+func (this *Reader) Int(key string) int {
+	value, _ := this.IntError(key)
+	return value
+}
+
+func (this *Reader) IntError(key string) (int, error) {
+	raw, err := this.StringError(key)
+	if err != nil {
+		return 0, err
+	}
+
+	number, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, MalformedValueError
+	}
+
+	return number, nil
+}
+
+func (this *Reader) IntPanic(key string) int {
+	if value, err := this.IntError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) IntFatal(key string) int {
+	if value, err := this.IntError(key); err != nil {
+		fatal(err)
+		return 0
+	} else {
+		return value
+	}
+}
+
+func (this *Reader) IntDefault(key string, Default int) int {
+	if value, err := this.IntError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
 var fatal = func(err error) { log.Fatal(err) }

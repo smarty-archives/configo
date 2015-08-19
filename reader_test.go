@@ -247,6 +247,93 @@ func (this *ReaderTestFixture) TestIntsDefault_NotFound() {
 
 //////////////////////////////////////////////////////////////
 
+func (this *ReaderTestFixture) TestIntError_Found() {
+	value, err := this.reader.IntError("int")
+
+	this.So(value, should.Resemble, 42)
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestIntError_NotFound() {
+	value, err := this.reader.IntError("asdf")
+
+	this.So(value, should.Equal, 0)
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestIntError_MalformedValue() {
+	value, err := this.reader.IntError("int-bad")
+
+	this.So(value, should.Equal, 0)
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestInt_Found() {
+	value := this.reader.Int("int")
+
+	this.So(value, should.Resemble, 42)
+}
+
+func (this *ReaderTestFixture) TestInt_NotFound() {
+	value := this.reader.Int("qrew")
+
+	this.So(value, should.Equal, 0)
+}
+
+func (this *ReaderTestFixture) TestInt_MalformedValue() {
+	value := this.reader.Int("int-bad")
+
+	this.So(value, should.Equal, 0)
+}
+
+func (this *ReaderTestFixture) TestIntPanic_Found() {
+	value := this.reader.IntPanic("int")
+
+	this.So(value, should.Resemble, 42)
+}
+
+func (this *ReaderTestFixture) TestIntPanic_NotFound() {
+	this.So(func() { this.reader.IntPanic("blah blah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestIntPanic_MalformedValue() {
+	this.So(func() { this.reader.IntPanic("int-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestIntFatal_Found() {
+	value := this.reader.IntFatal("int")
+
+	this.So(value, should.Resemble, 42)
+}
+
+func (this *ReaderTestFixture) TestIntFatal_NotFound() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.IntFatal("balhaafslk")
+	this.So(err, should.NotBeNil)
+}
+
+func (this *ReaderTestFixture) TestIntFatal_MalformedValue() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.IntFatal("int-bad")
+	this.So(err, should.NotBeNil)
+}
+
+func (this *ReaderTestFixture) TestIntDefault_Found() {
+	value := this.reader.IntDefault("int", 84)
+
+	this.So(value, should.Resemble, 42)
+}
+
+func (this *ReaderTestFixture) TestIntDefault_NotFound() {
+	value := this.reader.IntDefault("missing", 84)
+
+	this.So(value, should.Resemble, 84)
+}
+
+//////////////////////////////////////////////////////////////
+
 type FakeSource struct {
 	key   string
 	value []string
