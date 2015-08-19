@@ -56,8 +56,14 @@ func (this *DefaultSourceFixture) TestAddingUnsignedIntegerTypesRetrievesAll() {
 	this.addValues(uint32(7))
 	this.addValues(uint16(8))
 	this.addValues(uint8(9))
+	this.addValues(uint(10))
 
-	this.assertValues([]string{"6", "7", "8", "9"})
+	this.assertValues([]string{"6", "7", "8", "9", "10"})
+}
+
+func (this *DefaultSourceFixture) TestAddingUnknownTypeReturnsEmptyValue() {
+	this.addValues([]string{"slice"})
+	this.assertValues([]string{""})
 }
 
 func (this *DefaultSourceFixture) TestAddingFloatingPointTypesRetrievesAll() {
