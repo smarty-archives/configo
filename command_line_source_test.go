@@ -27,7 +27,7 @@ func (this *CommandLineSourceFixture) TestMatchingValueFound() {
 	this.Print(`Simulates at the command line: ./app -flagName="value from command line"`)
 
 	flagParse = this.fakeFlagParse
-	this.source = NewCommandLineFlag("flagName", 42, "This is a cool flag")
+	this.source = NewCommandLineFlag("flagName", "This is a cool flag")
 	this.source.Initialize()
 
 	values, err := this.source.Strings("flagName")
@@ -36,23 +36,24 @@ func (this *CommandLineSourceFixture) TestMatchingValueFound() {
 	this.So(err, should.BeNil)
 }
 
-func (this *CommandLineSourceFixture) TestFlagNotPassed__DefaultValueUsedInstead() {
+func (this *CommandLineSourceFixture) TestFlagNotPassed__NotFound() {
 	this.Print(`Simulates no command line flag passed.`)
 
-	this.source = NewCommandLineFlag("flagName2", 42, "This is a cool flag")
+	this.source = NewCommandLineFlag("flagName2", "This is a cool flag")
 	this.source.Initialize()
 
 	values, err := this.source.Strings("flagName2")
 
-	this.So(values, should.Resemble, []string{"42"})
-	this.So(err, should.BeNil)
+	var expectedValue []string // nil
+	this.So(values, should.Resemble, expectedValue)
+	this.So(err, should.Equal, KeyNotFoundError)
 }
 
 func (this *CommandLineSourceFixture) TestFlagNotDefined__NoValuesReturned() {
 	this.Print(`Simulates requesting the value of an undefined flag`)
 
 	flagParse = this.fakeFlagParse
-	this.source = NewCommandLineFlag("flagName3", 42, "This is a cool flag")
+	this.source = NewCommandLineFlag("flagName3", "This is a cool flag")
 	this.source.Initialize()
 
 	values, err := this.source.Strings("unknown")
@@ -64,4 +65,5 @@ func (this *CommandLineSourceFixture) TestFlagNotDefined__NoValuesReturned() {
 
 func (this *CommandLineSourceFixture) fakeFlagParse() {
 	this.source.value = &commandLineValue
+	this.source.isSet = true
 }
