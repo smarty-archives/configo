@@ -22,6 +22,6 @@ func FromDevelopmentOnlyDefaults() *ConditionalSource {
 
 // If we are running in a production (non-development) environment
 // the specified JSON filename is required; otherwise it's optional.
-func FromRequiredInProductionJSONFile(filename string) *JSONSource {
+func FromRequiredInProductionJSONFile(filename string) Source {
 	return FromConditionalJSONFile(filename, productionEnvironment)
 }
