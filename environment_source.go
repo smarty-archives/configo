@@ -31,10 +31,6 @@ func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource
 	return &EnvironmentSource{prefix: prefix, separator: separator}
 }
 
-func (this *EnvironmentSource) Name() string {
-	return "environment"
-}
-
 func (this *EnvironmentSource) Strings(key string) ([]string, error) {
 	key = this.prefix + sanitizeKey(key)
 

@@ -79,10 +79,6 @@ func convertToString(value interface{}) string {
 	}
 }
 
-func (this *ConditionalSource) Name() string {
-	return "conditional"
-}
-
 func (this *ConditionalSource) Strings(key string) ([]string, error) {
 	if !this.condition() {
 		return nil, KeyNotFoundError

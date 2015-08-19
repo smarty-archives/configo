@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// JSONSOurce houses key-value pairs unmarshaled from JSON data.
+// JSONSource houses key-value pairs unmarshaled from JSON data.
 type JSONSource struct {
 	values map[string]interface{}
 }
@@ -39,10 +39,6 @@ func FromJSONContent(raw []byte) *JSONSource {
 	}
 
 	return &JSONSource{values: values}
-}
-
-func (this *JSONSource) Name() string {
-	return "json-file"
 }
 
 func (this *JSONSource) Strings(key string) ([]string, error) {
