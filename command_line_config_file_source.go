@@ -7,7 +7,7 @@ package newton
 type CommandLineConfigFileSource struct {
 	flagName    string
 	commandLine *CommandLineSource
-	json        *JSONSource
+	json        Source
 }
 
 // NewDefaultCommandLineConfigFileSource registers a command line flag called "config" for specifying
@@ -20,8 +20,8 @@ func NewDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource {
 // an alternate JSON config file.
 func NewCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource {
 	return &CommandLineConfigFileSource{
-		flagName:          flagName,
-		CommandLineSource: NewCommandLineFlag(flagName, "The default configuration file path."),
+		flagName:    flagName,
+		commandLine: NewCommandLineFlag(flagName, "The default configuration file path."),
 	}
 }
 
