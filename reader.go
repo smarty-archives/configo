@@ -293,16 +293,16 @@ func (this *Reader) BoolDefault(key string, Default bool) bool {
 
 //////////////////////////////////////////////////////////////
 
-// URLS returns all URL values associated with the given key or returns the zero value
+// URLs returns all URL values associated with the given key or returns the zero value
 // if the key does not exist or the value could not be parsed as a URL.
-func (this *Reader) URLS(key string) []url.URL {
-	value, _ := this.URLSError(key)
+func (this *Reader) URLs(key string) []url.URL {
+	value, _ := this.URLsError(key)
 	return value
 }
 
-// URLSError returns all URL values associated with the given key with an error
+// URLsError returns all URL values associated with the given key with an error
 // if the key does not exist or the values could not be parsed as URLs.
-func (this *Reader) URLSError(key string) ([]url.URL, error) {
+func (this *Reader) URLsError(key string) ([]url.URL, error) {
 	raw, err := this.StringsError(key)
 	if err != nil {
 		return nil, err
@@ -320,20 +320,20 @@ func (this *Reader) URLSError(key string) ([]url.URL, error) {
 	return urls, nil
 }
 
-// URLSPanic returns all URL values associated with the given key or panics
+// URLsPanic returns all URL values associated with the given key or panics
 // if the key does not exist or the values could not be parsed as URLs.
-func (this *Reader) URLSPanic(key string) []url.URL {
-	if value, err := this.URLSError(key); err != nil {
+func (this *Reader) URLsPanic(key string) []url.URL {
+	if value, err := this.URLsError(key); err != nil {
 		panic(err)
 	} else {
 		return value
 	}
 }
 
-// URLSFatal returns all URL values associated with the given key or calls log.Fatal()
+// URLsFatal returns all URL values associated with the given key or calls log.Fatal()
 // if the key does not exist or the values could not be parsed as URLs.
-func (this *Reader) URLSFatal(key string) []url.URL {
-	if value, err := this.URLSError(key); err != nil {
+func (this *Reader) URLsFatal(key string) []url.URL {
+	if value, err := this.URLsError(key); err != nil {
 		fatal(err)
 		return nil
 	} else {
@@ -341,10 +341,10 @@ func (this *Reader) URLSFatal(key string) []url.URL {
 	}
 }
 
-// URLSDefault returns all URL values associated with the given key or returns provided defaults
+// URLsDefault returns all URL values associated with the given key or returns provided defaults
 // if the key does not exist or the values could not be parsed as URLs.
-func (this *Reader) URLSDefault(key string, Default []url.URL) []url.URL {
-	if value, err := this.URLSError(key); err != nil {
+func (this *Reader) URLsDefault(key string, Default []url.URL) []url.URL {
+	if value, err := this.URLsError(key); err != nil {
 		return Default
 	} else {
 		return value
