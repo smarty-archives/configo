@@ -76,3 +76,5 @@ func (this *DefaultSource) Strings(key string) ([]string, error) {
 
 	return values, nil
 }
+
+func (this *DefaultSource) Initialize() {}

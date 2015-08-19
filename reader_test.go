@@ -34,6 +34,25 @@ func (this *ReaderTestFixture) Setup() {
 
 ////////////////////////////////////////////////////////////////
 
+func (this *ReaderTestFixture) TestInitializeSources() {
+	for _, source := range this.sources {
+		this.So(source.(*FakeSource).initialized, should.Equal, 1)
+	}
+}
+
+////////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestNilSourcesAreSkipped() {
+	source1 := &FakeSource{key: "1"}
+	source2 := &FakeSource{key: "2"}
+	this.sources = []Source{source1, nil, nil, nil, source2}
+
+	this.So(func() { this.reader = NewReader(this.sources...) }, should.NotPanic)
+	this.So(this.reader.sources, should.Resemble, []Source{source1, source2})
+}
+
+////////////////////////////////////////////////////////////////
+
 func (this *ReaderTestFixture) TestStrings_Found() {
 	value := this.reader.Strings("string")
 
@@ -606,21 +625,20 @@ func (this *ReaderTestFixture) TestURLDefault_NotFound() {
 }
 
 //////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
 
 type FakeSource struct {
-	key   string
-	value []string
+	key         string
+	value       []string
+	initialized int
 }
 
-func (this *FakeSource) Name() string {
-	return "fake"
+func (this *FakeSource) Initialize() {
+	this.initialized++
 }
+
 func (this *FakeSource) Strings(key string) ([]string, error) {
 	if key == this.key {
 		return this.value, nil
 	}
 	return nil, KeyNotFoundError
 }
-
-//////////////////////////////////////////////////////////////

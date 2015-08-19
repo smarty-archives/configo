@@ -63,3 +63,5 @@ func sanitizeKey(key string) string {
 
 	return sanitized
 }
+
+func (this *EnvironmentSource) Initialize() {}

@@ -13,7 +13,18 @@ type Reader struct {
 }
 
 func NewReader(sources ...Source) *Reader {
-	return &Reader{sources: sources}
+	filtered := []Source{}
+
+	for _, source := range sources {
+		if source == nil {
+			continue
+		}
+
+		source.Initialize()
+		filtered = append(filtered, source)
+	}
+
+	return &Reader{sources: filtered}
 }
 
 // Strings returns all values associated with the given key or nil

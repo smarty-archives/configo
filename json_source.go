@@ -79,3 +79,5 @@ func toStrings(value interface{}) []string {
 		return nil
 	}
 }
+
+func (this *JSONSource) Initialize() {}

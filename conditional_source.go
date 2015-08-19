@@ -23,3 +23,5 @@ func (this *ConditionalSource) Strings(key string) ([]string, error) {
 
 	return this.inner.Strings(key)
 }
+
+func (this *ConditionalSource) Initialize() {}
