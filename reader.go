@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+// Reader retrieves values from the provided sources, handling conversions
+// to the type identified by the method being called (Strings, Ints, etc...).
 type Reader struct {
 	sources []Source
 }
@@ -13,11 +15,15 @@ func NewReader(sources ...Source) *Reader {
 	return &Reader{sources: sources}
 }
 
+// Strings returns all values associated with the given key or nil
+// if the key does not exist.
 func (this *Reader) Strings(key string) []string {
 	value, _ := this.StringsError(key)
 	return value
 }
 
+// StringsError returns all values associated with the given key with an error
+// if the key does not exist.
 func (this *Reader) StringsError(key string) ([]string, error) {
 	for _, source := range this.sources {
 		if value, err := source.Strings(key); err == nil {
@@ -27,6 +33,8 @@ func (this *Reader) StringsError(key string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
 
+// StringsPanic returns all values associated with the given key or panics
+// if the key does not exist.
 func (this *Reader) StringsPanic(key string) []string {
 	if value, err := this.StringsError(key); err != nil {
 		panic(err)
@@ -35,6 +43,8 @@ func (this *Reader) StringsPanic(key string) []string {
 	}
 }
 
+// StringsDefault returns all values associated with the given key or the provided defaults
+// if the key does not exist.
 func (this *Reader) StringsDefault(key string, Default []string) []string {
 	if value, err := this.StringsError(key); err != nil {
 		return Default
@@ -43,6 +53,8 @@ func (this *Reader) StringsDefault(key string, Default []string) []string {
 	}
 }
 
+// StringsFatal returns all values associated with the given key or log.Fatal()
+// if the key does not exist.
 func (this *Reader) StringsFatal(key string) []string {
 	if value, err := this.StringsError(key); err != nil {
 		fatal(err)
@@ -54,6 +66,8 @@ func (this *Reader) StringsFatal(key string) []string {
 
 //////////////////////////////////////////////////////////////
 
+// String returns the first value associated with the given key or an empty string
+// if the key does not exist.
 func (this *Reader) String(key string) string {
 	if value, err := this.StringError(key); err != nil {
 		return ""
@@ -62,6 +76,8 @@ func (this *Reader) String(key string) string {
 	}
 }
 
+// StringError returns the first value associated with the given key with an an error
+// if the key does not exist.
 func (this *Reader) StringError(key string) (string, error) {
 	if value, err := this.StringsError(key); err != nil {
 		return "", err
@@ -72,6 +88,8 @@ func (this *Reader) StringError(key string) (string, error) {
 	}
 }
 
+// StringPanic returns the first value associated with the given key or panics
+// if the key does not exist.
 func (this *Reader) StringPanic(key string) string {
 	if value, err := this.StringError(key); err != nil {
 		panic(err)
@@ -80,6 +98,8 @@ func (this *Reader) StringPanic(key string) string {
 	}
 }
 
+// StringDefault returns the first value associated with the given key or the provided default
+// if the key does not exist.
 func (this *Reader) StringDefault(key string, Default string) string {
 	if value, err := this.StringError(key); err != nil {
 		return Default
@@ -88,6 +108,8 @@ func (this *Reader) StringDefault(key string, Default string) string {
 	}
 }
 
+// StringFatal returns the first value associated with the given key or calls log.Fatal()
+// if the key does not exist.
 func (this *Reader) StringFatal(key string) string {
 	if value, err := this.StringError(key); err != nil {
 		fatal(err)
@@ -99,11 +121,15 @@ func (this *Reader) StringFatal(key string) string {
 
 //////////////////////////////////////////////////////////////
 
+// Ints returns all integer values associated with the given key or returns 0
+// if the key does not exist.
 func (this *Reader) Ints(key string) []int {
 	value, _ := this.IntsError(key)
 	return value
 }
 
+// IntsError returns all integer values associated with the given key with an error
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntsError(key string) ([]int, error) {
 	raw, err := this.StringsError(key)
 	if err != nil {
@@ -121,6 +147,8 @@ func (this *Reader) IntsError(key string) ([]int, error) {
 	return ints, nil
 }
 
+// IntsPanic returns all integer values associated with the given key or panics
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntsPanic(key string) []int {
 	if value, err := this.IntsError(key); err != nil {
 		panic(err)
@@ -129,6 +157,8 @@ func (this *Reader) IntsPanic(key string) []int {
 	}
 }
 
+// IntsFatal returns all integer values associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntsFatal(key string) []int {
 	if value, err := this.IntsError(key); err != nil {
 		fatal(err)
@@ -138,6 +168,8 @@ func (this *Reader) IntsFatal(key string) []int {
 	}
 }
 
+// IntsDefault returns all integer values associated with the given key or returns provided defaults
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntsDefault(key string, Default []int) []int {
 	if value, err := this.IntsError(key); err != nil {
 		return Default
@@ -148,11 +180,15 @@ func (this *Reader) IntsDefault(key string, Default []int) []int {
 
 //////////////////////////////////////////////////////////////
 
+// Int returns the first integer value associated with the given key or returns 0
+// if the key does not exist.
 func (this *Reader) Int(key string) int {
 	value, _ := this.IntError(key)
 	return value
 }
 
+// IntError returns the first integer value associated with the given key with an error
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntError(key string) (int, error) {
 	raw, err := this.StringError(key)
 	if err != nil {
@@ -167,6 +203,8 @@ func (this *Reader) IntError(key string) (int, error) {
 	return number, nil
 }
 
+// IntPanic returns the first integer value associated with the given key or panics
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntPanic(key string) int {
 	if value, err := this.IntError(key); err != nil {
 		panic(err)
@@ -175,6 +213,8 @@ func (this *Reader) IntPanic(key string) int {
 	}
 }
 
+// IntFatal returns the first integer value associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntFatal(key string) int {
 	if value, err := this.IntError(key); err != nil {
 		fatal(err)
@@ -184,6 +224,8 @@ func (this *Reader) IntFatal(key string) int {
 	}
 }
 
+// IntDefault returns the first integer values associated with the given key or returns the provided default
+// if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntDefault(key string, Default int) int {
 	if value, err := this.IntError(key); err != nil {
 		return Default
