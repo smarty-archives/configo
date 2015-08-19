@@ -11,7 +11,10 @@ type EnvironmentSource struct {
 	separator string
 }
 
-func FromEnvironment(prefix string) *EnvironmentSource {
+func FromEnvironment() *EnvironmentSource {
+	return FromEnvironmentCustomSeparator("", "|")
+}
+func FromEnvironmentWithPrefix(prefix string) *EnvironmentSource {
 	return FromEnvironmentCustomSeparator(prefix, "|")
 }
 func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource {
