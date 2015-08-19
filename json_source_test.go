@@ -1,4 +1,4 @@
-package newton
+package configo
 
 import (
 	"github.com/smartystreets/assertions/should"

@@ -1,6 +1,6 @@
-# newton
+# configo
 --
-    import "github.com/configo"
+    import "github.com/smartystreets/configo"
 
 
 ## Usage

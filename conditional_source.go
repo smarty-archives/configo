@@ -1,4 +1,4 @@
-package newton
+package configo
 
 type ConditionalSource struct {
 	condition func() bool

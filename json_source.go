@@ -1,4 +1,4 @@
-package newton
+package configo
 
 import (
 	"encoding/json"

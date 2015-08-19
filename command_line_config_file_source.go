@@ -1,4 +1,4 @@
-package newton
+package configo
 
 // CommandLineConfigFileSource registers a command line flag for specifying an optional json config file,
 // beyond any other config file definitions that follow this one. It is intened to be used to provide an
