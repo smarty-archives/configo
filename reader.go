@@ -17,7 +17,12 @@ func NewReader(sources ...Source) *Reader {
 	filtered := []Source{}
 
 	for _, source := range sources {
-		if source == nil || reflect.ValueOf(source).IsNil() {
+		if source == nil {
+			continue
+		}
+
+		value := reflect.ValueOf(source)
+		if value.Kind() == reflect.Interface && value.IsNil() {
 			continue
 		}
 
