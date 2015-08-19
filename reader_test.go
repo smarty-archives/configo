@@ -516,6 +516,96 @@ func (this *ReaderTestFixture) TestURLSDefault_NotFound() {
 }
 
 //////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestURLError_Found() {
+	value, err := this.reader.URLError("url")
+
+	this.So(value, should.Resemble, validURL)
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestURLError_NotFound() {
+	value, err := this.reader.URLError("asdf")
+
+	this.So(value, should.Resemble, url.URL{})
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestURLError_MalformedValue() {
+	value, err := this.reader.URLError("url-bad")
+
+	this.So(value, should.Resemble, url.URL{})
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestURL_Found() {
+	value := this.reader.URL("url")
+
+	this.So(value, should.Resemble, validURL)
+}
+
+func (this *ReaderTestFixture) TestURL_NotFound() {
+	value := this.reader.URL("qrew")
+
+	this.So(value, should.Resemble, url.URL{})
+}
+
+func (this *ReaderTestFixture) TestURL_MalformedValue() {
+	value := this.reader.URL("url-bad")
+
+	this.So(value, should.Resemble, url.URL{})
+}
+
+func (this *ReaderTestFixture) TestURLPanic_Found() {
+	value := this.reader.URLPanic("url")
+
+	this.So(value, should.Resemble, validURL)
+}
+
+func (this *ReaderTestFixture) TestURLPanic_NotFound() {
+	this.So(func() { this.reader.URLPanic("blah blah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestURLPanic_MalformedValue() {
+	this.So(func() { this.reader.URLPanic("url-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestURLFatal_Found() {
+	value := this.reader.URLFatal("url")
+
+	this.So(value, should.Resemble, validURL)
+}
+
+func (this *ReaderTestFixture) TestURLFatal_NotFound() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.URLFatal("balhaafslk")
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestURLFatal_MalformedValue() {
+	var err error
+	fatal = func(e error) { err = e }
+	this.reader.URLFatal("url-bad")
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+var _defaultURL, _ = url.Parse("http://bing.com")
+var defaultURL = *_defaultURL
+
+func (this *ReaderTestFixture) TestURLDefault_Found() {
+	value := this.reader.URLDefault("url", defaultURL)
+
+	this.So(value, should.Resemble, validURL)
+}
+
+func (this *ReaderTestFixture) TestURLDefault_NotFound() {
+	value := this.reader.URLDefault("missing", defaultURL)
+
+	this.So(value, should.Resemble, defaultURL)
+}
+
+//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
 type FakeSource struct {

@@ -353,4 +353,60 @@ func (this *Reader) URLSDefault(key string, Default []url.URL) []url.URL {
 
 //////////////////////////////////////////////////////////////
 
+// URL returns the first URL associated with the given key or returns the zero value
+// if the key does not exist or the value could not be parsed as a URL.
+func (this *Reader) URL(key string) url.URL {
+	value, _ := this.URLError(key)
+	return value
+}
+
+// URLError returns the first URL associated with the given key with an error
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLError(key string) (url.URL, error) {
+	raw, err := this.StringError(key)
+	if err != nil {
+		return url.URL{}, err
+	}
+
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return url.URL{}, MalformedValueError
+	}
+
+	return *parsed, nil
+}
+
+// URLPanic returns the first URL associated with the given key or panics
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLPanic(key string) url.URL {
+	if value, err := this.URLError(key); err != nil {
+		panic(err)
+	} else {
+		return value
+	}
+}
+
+// URLFatal returns the first URL associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLFatal(key string) url.URL {
+	if value, err := this.URLError(key); err != nil {
+		fatal(err)
+		return url.URL{}
+	} else {
+		return value
+	}
+}
+
+// URLDefault returns the first URL associated with the given key or returns provided defaults
+// if the key does not exist or the values could not be parsed as URLs.
+func (this *Reader) URLDefault(key string, Default url.URL) url.URL {
+	if value, err := this.URLError(key); err != nil {
+		return Default
+	} else {
+		return value
+	}
+}
+
+//////////////////////////////////////////////////////////////
+
 var fatal = func(err error) { log.Fatal(err) }
