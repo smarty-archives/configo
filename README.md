@@ -2,6 +2,66 @@
 --
     import "github.com/smartystreets/configo"
 
+Package configo provides flexible configurtion for go applications from any
+number of 'sources', each of which implement the Source interface also provided
+by this package.
+
+Sources provided in this package:
+
+    - JSONSource (key/value pairs in JSON content)
+    - EnvironmentSource (key/value pairs from the environment)
+    - CommandLineSource (key/value pairs via command line flags)
+    - DefaultSource (key/value pairs manually configured by the application)
+    - ConditionalSource (filters key/value retreival based on a condition)
+
+These basic sources have been composed into additional sources, made available
+via the following constructor methods:
+
+    - FromDevelopmentOnlyDefaults()
+    - FromRequiredInProductionJSONFile()
+    - NewDefaultCommandLineConfigFileSource()
+    - NewCommandLineConfigFileSource(path string)
+
+Any of these sources may be provided to a Reader which is then used to retrieve
+configuration values based on keys contained in the sources.
+
+The reader can fetch values of various types:
+
+    func (*Reader) Strings(key string) []string
+    func (*Reader) String(key string) string
+    func (*Reader) Ints(key string) []int
+    func (*Reader) Int(key string) int
+    func (*Reader) Bool(key string) bool
+    func (*Reader) URLs(key string) []net.url.URL
+    func (*Reader) URL(key string) net.url.URL
+
+For each of the types returned above there are different ways to handle the
+scenario when a key is not found. I'll illustrate this with the applicable Int
+functions (but similar methods are implemented for each returned type):
+
+    // returns zero value if key not found or values are malformed.
+    func (*Reader) Int(key string) int
+
+    // returns the value or the specified default if the key is not found.
+    func (*Reader) IntDefault(key string, Default int) int
+
+    // returns 0 and an error if key not found or values are malformed.
+    func (*Reader) IntError(key string) (int, error)
+
+    // returns the value or panics if the key is not found or the values are malformed.
+    func (*Reader) IntPanic(key string) int
+
+    // returns the value or calls log.Fatal() if the key is not found or the values are malformed.
+    func (*Reader) IntFatal(key string) int
+
+Here's a full example:
+
+    reader := configo.NewReader(
+        NewDefaultCommandLineConfigFileSource(),
+        NewCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
+        FromOptionalJSONFile("config-prod.json"),
+    )
+    value := reader.URL("s3-storage-address")
 
 ## Usage
 
@@ -99,13 +159,14 @@ type ConditionalSource struct {
 }
 ```
 
+ConditionalSource resolves values based on a condition supplied as a callback.
 
 #### func  FromDevelopmentOnlyDefaults
 
 ```go
 func FromDevelopmentOnlyDefaults() *ConditionalSource
 ```
-A conditional source which determine if we are running in a development
+A conditional source which determines if we are running in a development
 environment
 
 #### func  NewConditionalSource
@@ -113,12 +174,16 @@ environment
 ```go
 func NewConditionalSource(condition func() bool) *ConditionalSource
 ```
+NewConditionalSource creates a conditional source with the provided condition
+callback.
 
 #### func (*ConditionalSource) Add
 
 ```go
 func (this *ConditionalSource) Add(key string, values ...interface{}) *ConditionalSource
 ```
+Add registers a key/values pairing for retrieval, so long as the supplied
+condition is true.
 
 #### func (*ConditionalSource) Initialize
 
@@ -131,6 +196,8 @@ func (this *ConditionalSource) Initialize()
 ```go
 func (this *ConditionalSource) Strings(key string) ([]string, error)
 ```
+Strings returns the value of the corresponding key, or KeyNotFoundError if the
+condition is false.
 
 #### type DefaultSource
 
@@ -139,18 +206,23 @@ type DefaultSource struct {
 }
 ```
 
+DefaultSource is allows registration of specified default values of various
+types.
 
 #### func  NewDefaultSource
 
 ```go
 func NewDefaultSource() *DefaultSource
 ```
+NewDefaultSource initializes a new DefaultSource.
 
 #### func (*DefaultSource) Add
 
 ```go
 func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource
 ```
+Adds the provided values (which will be converted to strings) to the given key.
+It does NOT overwrite existing values, it adds.
 
 #### func (*DefaultSource) Initialize
 
@@ -163,6 +235,7 @@ func (this *DefaultSource) Initialize()
 ```go
 func (this *DefaultSource) Strings(key string) ([]string, error)
 ```
+Strings returns all values associated with the given key, or KeyNotFoundError.
 
 #### type EnvironmentSource
 
@@ -209,6 +282,8 @@ func (this *EnvironmentSource) Initialize()
 ```go
 func (this *EnvironmentSource) Strings(key string) ([]string, error)
 ```
+Strings reads the environment variable specified by key and returns the value or
+KeyNotFoundError.
 
 #### type JSONSource
 
@@ -265,6 +340,8 @@ type identified by the method being called (Strings, Ints, etc...).
 ```go
 func NewReader(sources ...Source) *Reader
 ```
+NewReader initializes a new reader using the provided sources. It calls each
+non-nil source's Initialize() method.
 
 #### func (*Reader) Bool
 
@@ -456,7 +533,8 @@ defaults if the key does not exist.
 func (this *Reader) StringsError(key string) ([]string, error)
 ```
 StringsError returns all values associated with the given key with an error if
-the key does not exist.
+the key does not exist. It does so by searching it sources, in the order they
+were provided, and returns the first non-error result or KeyNotFoundError.
 
 #### func (*Reader) StringsFatal
 

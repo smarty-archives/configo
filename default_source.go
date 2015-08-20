@@ -6,16 +6,20 @@ import (
 	"time"
 )
 
+// DefaultSource is allows registration of specified default values of various types.
 type DefaultSource struct {
 	settings map[string][]string
 }
 
+// NewDefaultSource initializes a new DefaultSource.
 func NewDefaultSource() *DefaultSource {
 	return &DefaultSource{
 		settings: make(map[string][]string),
 	}
 }
 
+// Adds the provided values (which will be converted to strings) to the given key.
+// It does NOT overwrite existing values, it adds.
 func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource {
 	contents := this.settings[key]
 
@@ -26,6 +30,7 @@ func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource
 	this.settings[key] = contents
 	return this
 }
+
 func convertToString(value interface{}) string {
 	switch typed := value.(type) {
 	case string:
@@ -69,6 +74,7 @@ func convertToString(value interface{}) string {
 	}
 }
 
+// Strings returns all values associated with the given key, or KeyNotFoundError.
 func (this *DefaultSource) Strings(key string) ([]string, error) {
 	values, found := this.settings[key]
 	if !found {

@@ -13,6 +13,8 @@ type Reader struct {
 	sources []Source
 }
 
+// NewReader initializes a new reader using the provided sources. It calls each
+// non-nil source's Initialize() method.
 func NewReader(sources ...Source) *Reader {
 	filtered := []Source{}
 
@@ -41,7 +43,8 @@ func (this *Reader) Strings(key string) []string {
 }
 
 // StringsError returns all values associated with the given key with an error
-// if the key does not exist.
+// if the key does not exist. It does so by searching it sources, in the order
+// they were provided, and returns the first non-error result or KeyNotFoundError.
 func (this *Reader) StringsError(key string) ([]string, error) {
 	for _, source := range this.sources {
 		if value, err := source.Strings(key); err == nil {
