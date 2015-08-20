@@ -45,10 +45,11 @@ func (this *ReaderTestFixture) TestInitializeSources() {
 func (this *ReaderTestFixture) TestNilSourcesAreSkipped() {
 	source1 := &FakeSource{key: "1"}
 	source2 := &FakeSource{key: "2"}
-	this.sources = []Source{source1, nil, nil, nil, source2}
+	source3 := NoopSource{}
+	var nilSource *CommandLineSource
 
-	this.So(func() { this.reader = NewReader(this.sources...) }, should.NotPanic)
-	this.So(this.reader.sources, should.Resemble, []Source{source1, source2})
+	this.So(func() { this.reader = NewReader(source1, nilSource, nil, nil, nil, source2, source3) }, should.NotPanic)
+	this.So(this.reader.sources, should.Resemble, []Source{source1, source2, source3})
 }
 
 ////////////////////////////////////////////////////////////////

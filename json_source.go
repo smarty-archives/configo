@@ -13,7 +13,7 @@ type JSONSource struct {
 
 // FromJSONFile reads and unmarshals the file at the provided path into a JSONSource.
 // Any resulting error results in a panic.
-func FromJSONFile(filename string) Source {
+func FromJSONFile(filename string) *JSONSource {
 	if contents, err := ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	} else {
@@ -23,7 +23,7 @@ func FromJSONFile(filename string) Source {
 
 // If the provided condition returns true, the specified filename
 // is required and must be found; otherwise loading the file is optional.
-func FromConditionalJSONFile(filename string, condition func() bool) Source {
+func FromConditionalJSONFile(filename string, condition func() bool) *JSONSource {
 	if condition() {
 		return FromJSONFile(filename)
 	}
@@ -32,17 +32,17 @@ func FromConditionalJSONFile(filename string, condition func() bool) Source {
 }
 
 // FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is not found.
-func FromOptionalJSONFile(filename string) Source {
+func FromOptionalJSONFile(filename string) *JSONSource {
 	if contents, _ := ioutil.ReadFile(filename); len(contents) > 0 {
 		return FromJSONContent(contents)
 	}
 
-	return NoopSource{}
+	return nil
 }
 
 // FromJSONContent unmarshals the provided json content into a JSONSource.
 // Any resulting error results in a panic.
-func FromJSONContent(raw []byte) Source {
+func FromJSONContent(raw []byte) *JSONSource {
 	values := make(map[string]interface{})
 	if err := json.Unmarshal(raw, &values); err != nil {
 		panic(err)

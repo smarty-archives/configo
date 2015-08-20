@@ -24,7 +24,7 @@ func NewReader(sources ...Source) *Reader {
 		}
 
 		value := reflect.ValueOf(source)
-		if value.Kind() == reflect.Interface && value.IsNil() {
+		if value.Type().Kind() == reflect.Ptr && value.IsNil() {
 			continue
 		}
 

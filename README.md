@@ -294,6 +294,38 @@ type JSONSource struct {
 
 JSONSource houses key-value pairs unmarshaled from JSON data.
 
+#### func  FromConditionalJSONFile
+
+```go
+func FromConditionalJSONFile(filename string, condition func() bool) *JSONSource
+```
+If the provided condition returns true, the specified filename is required and
+must be found; otherwise loading the file is optional.
+
+#### func  FromJSONContent
+
+```go
+func FromJSONContent(raw []byte) *JSONSource
+```
+FromJSONContent unmarshals the provided json content into a JSONSource. Any
+resulting error results in a panic.
+
+#### func  FromJSONFile
+
+```go
+func FromJSONFile(filename string) *JSONSource
+```
+FromJSONFile reads and unmarshals the file at the provided path into a
+JSONSource. Any resulting error results in a panic.
+
+#### func  FromOptionalJSONFile
+
+```go
+func FromOptionalJSONFile(filename string) *JSONSource
+```
+FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is
+not found.
+
 #### func (*JSONSource) Initialize
 
 ```go
@@ -645,38 +677,6 @@ type Source interface {
 
 Source defines the methods required by a Reader. The Strings method returns all
 values associated with the given key with an error if the key does not exist.
-
-#### func  FromConditionalJSONFile
-
-```go
-func FromConditionalJSONFile(filename string, condition func() bool) Source
-```
-If the provided condition returns true, the specified filename is required and
-must be found; otherwise loading the file is optional.
-
-#### func  FromJSONContent
-
-```go
-func FromJSONContent(raw []byte) Source
-```
-FromJSONContent unmarshals the provided json content into a JSONSource. Any
-resulting error results in a panic.
-
-#### func  FromJSONFile
-
-```go
-func FromJSONFile(filename string) Source
-```
-FromJSONFile reads and unmarshals the file at the provided path into a
-JSONSource. Any resulting error results in a panic.
-
-#### func  FromOptionalJSONFile
-
-```go
-func FromOptionalJSONFile(filename string) Source
-```
-FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is
-not found.
 
 #### func  FromRequiredInProductionJSONFile
 
