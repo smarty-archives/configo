@@ -12,7 +12,6 @@ import (
 // to the type identified by the method being called (Strings, Ints, etc...).
 type Reader struct {
 	sources []Source
-	alias   map[string]string
 }
 
 // NewReader initializes a new reader using the provided sources. It calls each
@@ -34,18 +33,7 @@ func NewReader(sources ...Source) *Reader {
 		filtered = append(filtered, source)
 	}
 
-	return &Reader{sources: filtered, alias: make(map[string]string)}
-}
-
-func (this *Reader) RegisterAlias(key string, aliases ...string) *Reader {
-	for _, alias := range aliases {
-		if target, duplicate := this.alias[alias]; duplicate && target != key {
-			log.Panicf("Registration of duplicate alias ('%s') is not allowed.", alias)
-		}
-		this.alias[alias] = key
-	}
-
-	return this
+	return &Reader{sources: filtered}
 }
 
 // Strings returns all values associated with the given key or nil
@@ -59,9 +47,6 @@ func (this *Reader) Strings(key string) []string {
 // if the key does not exist. It does so by searching it sources, in the order
 // they were provided, and returns the first non-error result or KeyNotFoundError.
 func (this *Reader) StringsError(key string) ([]string, error) {
-	if canonicalKey, givenKeyIsAlias := this.alias[key]; givenKeyIsAlias {
-		key = canonicalKey
-	}
 	for _, source := range this.sources {
 		if value, err := source.Strings(key); err == nil {
 			if err == nil && len(value) > 0 && strings.HasPrefix(value[0], "env:") {
