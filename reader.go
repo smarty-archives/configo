@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 // Reader retrieves values from the provided sources, handling conversions
@@ -61,6 +62,10 @@ func (this *Reader) StringsError(key string) ([]string, error) {
 	}
 	for _, source := range this.sources {
 		if value, err := source.Strings(key); err == nil {
+			if err == nil && len(value) > 0 && strings.HasPrefix(value[0], "env:") {
+				key = value[0] // if an EnvironmentSource is still to be inspected, it will remove the 'env:' prefix and do the lookup.
+				continue
+			}
 			return value, nil
 		}
 	}

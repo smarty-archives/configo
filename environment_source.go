@@ -50,6 +50,10 @@ func (this *EnvironmentSource) Strings(key string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
 func sanitizeKey(key string) string {
+	if strings.HasPrefix(key, "env:") {
+		key = key[len("env:"):]
+	}
+
 	sanitized := ""
 
 	for _, character := range key {

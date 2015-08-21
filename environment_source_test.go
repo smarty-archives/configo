@@ -14,7 +14,7 @@ type EnvironmentSourceFixture struct {
 }
 
 func (this *EnvironmentSourceFixture) Setup() {
-	this.source = FromEnvironmentCustomSeparator("newton_", ",")
+	this.source = FromEnvironmentCustomSeparator("configo_", ",")
 }
 
 func (this *EnvironmentSourceFixture) TestNonExistentValue() {
@@ -24,21 +24,21 @@ func (this *EnvironmentSourceFixture) TestNonExistentValue() {
 	this.So(err, should.Equal, KeyNotFoundError)
 }
 func (this *EnvironmentSourceFixture) TestKnownValue() {
-	setEnvironment("newton_Found", "hello")
+	setEnvironment("configo_Found", "hello")
 	values, err := this.source.Strings("Found")
 
 	this.So(values, should.Resemble, []string{"hello"})
 	this.So(err, should.BeNil)
 }
 func (this *EnvironmentSourceFixture) TestKnownValueArray() {
-	setEnvironment("newton_Found", "a,b,c")
+	setEnvironment("configo_Found", "a,b,c")
 	values, err := this.source.Strings("Found")
 
 	this.So(values, should.Resemble, []string{"a", "b", "c"})
 	this.So(err, should.BeNil)
 }
 func (this *EnvironmentSourceFixture) TestChecksUpperCaseKey() {
-	setEnvironment("NEWTON_UPPERCASE", "value")
+	setEnvironment("CONFIGO_UPPERCASE", "value")
 	values, err := this.source.Strings("uppercase")
 
 	this.So(values, should.Resemble, []string{"value"})
@@ -46,7 +46,7 @@ func (this *EnvironmentSourceFixture) TestChecksUpperCaseKey() {
 }
 
 func (this *EnvironmentSourceFixture) TestChecksLowerCaseKey() {
-	setEnvironment("newton_lowercase", "value")
+	setEnvironment("configo_lowercase", "value")
 	values, err := this.source.Strings("LOWERCASE")
 
 	this.So(values, should.Resemble, []string{"value"})
@@ -54,10 +54,18 @@ func (this *EnvironmentSourceFixture) TestChecksLowerCaseKey() {
 }
 
 func (this *EnvironmentSourceFixture) TestInvalidCharactersReplacedWithUnderscore() {
-	setEnvironment("newton_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0", "value")
+	setEnvironment("configo_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0", "value")
 	values, err := this.source.Strings("0-0.0~0!0@0#0%0^0&0*0(0)0/0\\0")
 
 	this.So(values, should.Resemble, []string{"value"})
+	this.So(err, should.BeNil)
+}
+
+func (this *EnvironmentSourceFixture) TestEnvPrefixIsAlwaysStrippedBeforeTheEnvironmentLookup() {
+	setEnvironment("configo_my_awesome_variable", "my_awesome_value")
+	values, err := this.source.Strings("env:my_awesome_variable")
+
+	this.So(values, should.Resemble, []string{"my_awesome_value"})
 	this.So(err, should.BeNil)
 }
 

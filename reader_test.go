@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -665,6 +666,20 @@ func (this *ReaderTestFixture) TestDuplicateAliasPanics() {
 	this.So(duplicateRegistration, should.Panic)
 }
 
+func (this *ReaderTestFixture) TestValuesThatReferToEnvironmentVariablesArePassedOnAsKeys() {
+	this.sources = []Source{
+		&FakeSource{key: "config-value", value: []string{"env:string"}}, // env:string will become the key which is passed to remaining sources (below)
+		&FakeSource{key: "string", value: []string{"not from environment"}},
+		&FakeEnvironmentSource{&FakeSource{key: "string", value: []string{"from environment"}}},
+	}
+	this.reader = NewReader(this.sources...)
+
+	value, err := this.reader.StringsError("config-value")
+
+	this.So(err, should.BeNil)
+	this.So(value, should.Resemble, []string{"from environment"})
+}
+
 //////////////////////////////////////////////////////////////
 
 type FakeSource struct {
@@ -693,3 +708,18 @@ func (this NoopSource) Initialize() {
 func (this NoopSource) Strings(string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+type FakeEnvironmentSource struct{ inner *FakeSource }
+
+func (this *FakeEnvironmentSource) Initialize() {}
+
+func (this *FakeEnvironmentSource) Strings(key string) ([]string, error) {
+	if strings.HasPrefix(key, "env:") {
+		return this.inner.Strings(key[len("env:"):])
+	}
+	return nil, KeyNotFoundError
+}
+
+////////////////////////////////////////////////////////////////////////////////
