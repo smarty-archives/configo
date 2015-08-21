@@ -1,7 +1,10 @@
 package configo
 
 import (
+	"io/ioutil"
+	"log"
 	"net/url"
+	"os"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -15,6 +18,7 @@ type ReaderTestFixture struct {
 }
 
 func (this *ReaderTestFixture) Setup() {
+	log.SetOutput(ioutil.Discard)
 	this.sources = []Source{
 		&FakeSource{},
 		&FakeSource{key: "string", value: []string{"asdf"}},
@@ -30,6 +34,9 @@ func (this *ReaderTestFixture) Setup() {
 	}
 
 	this.reader = NewReader(this.sources...)
+}
+func (this *ReaderTestFixture) Teardown() {
+	log.SetOutput(os.Stdout)
 }
 
 ////////////////////////////////////////////////////////////////
@@ -623,6 +630,39 @@ func (this *ReaderTestFixture) TestURLDefault_NotFound() {
 	value := this.reader.URLDefault("missing", defaultURL)
 
 	this.So(value, should.Resemble, defaultURL)
+}
+
+//////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestAlias() {
+	this.reader.RegisterAlias("int", "number", "digit", "integer")
+
+	value1, err1 := this.reader.IntsError("number")
+	value2, err2 := this.reader.IntsError("digit")
+	value3, err3 := this.reader.IntsError("integer")
+	value4, err4 := this.reader.IntsError("not a registered alias")
+
+	this.So(value1, should.Resemble, []int{42})
+	this.So(value2, should.Resemble, []int{42})
+	this.So(value3, should.Resemble, []int{42})
+	this.So(value4, should.BeEmpty)
+
+	this.So(err1, should.BeNil)
+	this.So(err2, should.BeNil)
+	this.So(err3, should.BeNil)
+	this.So(err4, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestDuplicateAliasPanics() {
+	this.reader.RegisterAlias("int", "value")
+	ok := func() {
+		this.reader.RegisterAlias("int", "value") // essentially a noop
+	}
+	duplicateRegistration := func() {
+		this.reader.RegisterAlias("string", "value")
+	}
+	this.So(ok, should.NotPanic)
+	this.So(duplicateRegistration, should.Panic)
 }
 
 //////////////////////////////////////////////////////////////
