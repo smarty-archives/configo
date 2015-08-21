@@ -98,7 +98,7 @@ func (this *Reader) StringsDefault(key string, Default []string) []string {
 // if the key does not exist.
 func (this *Reader) StringsFatal(key string) []string {
 	if value, err := this.StringsError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return nil
 	} else {
 		return value
@@ -153,7 +153,7 @@ func (this *Reader) StringDefault(key string, Default string) string {
 // if the key does not exist.
 func (this *Reader) StringFatal(key string) string {
 	if value, err := this.StringError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return ""
 	} else {
 		return value
@@ -202,7 +202,7 @@ func (this *Reader) IntsPanic(key string) []int {
 // if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntsFatal(key string) []int {
 	if value, err := this.IntsError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return nil
 	} else {
 		return value
@@ -258,7 +258,7 @@ func (this *Reader) IntPanic(key string) int {
 // if the key does not exist or the values could not be parsed as integers.
 func (this *Reader) IntFatal(key string) int {
 	if value, err := this.IntError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return 0
 	} else {
 		return value
@@ -314,7 +314,7 @@ func (this *Reader) BoolPanic(key string) bool {
 // if the key does not exist or the value could not be parsed as a bool.
 func (this *Reader) BoolFatal(key string) bool {
 	if value, err := this.BoolError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return false
 	} else {
 		return value
@@ -374,7 +374,7 @@ func (this *Reader) URLsPanic(key string) []url.URL {
 // if the key does not exist or the values could not be parsed as URLs.
 func (this *Reader) URLsFatal(key string) []url.URL {
 	if value, err := this.URLsError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return nil
 	} else {
 		return value
@@ -430,7 +430,7 @@ func (this *Reader) URLPanic(key string) url.URL {
 // if the key does not exist or the values could not be parsed as URLs.
 func (this *Reader) URLFatal(key string) url.URL {
 	if value, err := this.URLError(key); err != nil {
-		fatal(err)
+		fatal(key, err)
 		return url.URL{}
 	} else {
 		return value
@@ -449,4 +449,6 @@ func (this *Reader) URLDefault(key string, Default url.URL) url.URL {
 
 //////////////////////////////////////////////////////////////
 
-var fatal = func(err error) { log.Fatal(err) }
+var fatal = func(key string, err error) {
+	log.Fatalf("[%s] %s\n", key, err)
+}
