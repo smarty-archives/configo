@@ -675,6 +675,18 @@ func (this *ReaderTestFixture) TestValuesThatReferToEnvironmentVariablesArePasse
 
 //////////////////////////////////////////////////////////////
 
+func (this *ReaderTestFixture) TestKeyInspectsAliasValues() {
+	reader := this.reader.RegisterAlias("string", "string-alias")
+
+	values, err := this.reader.StringsError("string-alias")
+
+	this.So(reader, should.Equal, this.reader)
+	this.So(values, should.Resemble, []string{"asdf"})
+	this.So(err, should.BeNil)
+}
+
+//////////////////////////////////////////////////////////////
+
 type FakeSource struct {
 	key         string
 	value       []string

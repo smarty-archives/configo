@@ -12,6 +12,7 @@ import (
 // to the type identified by the method being called (Strings, Ints, etc...).
 type Reader struct {
 	sources []Source
+	aliases map[string][]string
 }
 
 // NewReader initializes a new reader using the provided sources. It calls each
@@ -33,7 +34,12 @@ func NewReader(sources ...Source) *Reader {
 		filtered = append(filtered, source)
 	}
 
-	return &Reader{sources: filtered}
+	return &Reader{sources: filtered, aliases: make(map[string][]string)}
+}
+
+func (this *Reader) RegisterAlias(key, alias string) *Reader {
+	this.aliases[alias] = append(this.aliases[alias], key)
+	return this
 }
 
 // Strings returns all values associated with the given key or nil
@@ -47,6 +53,15 @@ func (this *Reader) Strings(key string) []string {
 // if the key does not exist. It does so by searching it sources, in the order
 // they were provided, and returns the first non-error result or KeyNotFoundError.
 func (this *Reader) StringsError(key string) ([]string, error) {
+	for _, alias := range this.getKeys(key) {
+		if values, err := this.stringsError(alias); err == nil {
+			return values, nil
+		}
+	}
+
+	return nil, KeyNotFoundError
+}
+func (this *Reader) stringsError(key string) ([]string, error) {
 	for _, source := range this.sources {
 		if value, err := source.Strings(key); err == nil {
 			if err == nil && len(value) > 0 && strings.HasPrefix(value[0], "env:") {
@@ -56,7 +71,12 @@ func (this *Reader) StringsError(key string) ([]string, error) {
 			return value, nil
 		}
 	}
+
 	return nil, KeyNotFoundError
+}
+
+func (this *Reader) getKeys(key string) []string {
+	return append([]string{key}, this.aliases[key]...)
 }
 
 // StringsPanic returns all values associated with the given key or panics
