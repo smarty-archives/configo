@@ -636,12 +636,14 @@ func (this *ReaderTestFixture) TestURLDefault_NotFound() {
 //////////////////////////////////////////////////////////////
 
 func (this *ReaderTestFixture) TestAlias() {
-	this.reader.RegisterAlias("int", "number", "digit", "integer")
+	returned := this.reader.RegisterAlias("int", "number", "digit", "integer")
 
 	value1, err1 := this.reader.IntsError("number")
 	value2, err2 := this.reader.IntsError("digit")
 	value3, err3 := this.reader.IntsError("integer")
 	value4, err4 := this.reader.IntsError("not a registered alias")
+
+	this.So(returned, should.Equal, this.reader)
 
 	this.So(value1, should.Resemble, []int{42})
 	this.So(value2, should.Resemble, []int{42})

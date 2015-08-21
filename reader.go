@@ -37,13 +37,15 @@ func NewReader(sources ...Source) *Reader {
 	return &Reader{sources: filtered, alias: make(map[string]string)}
 }
 
-func (this *Reader) RegisterAlias(key string, aliases ...string) {
+func (this *Reader) RegisterAlias(key string, aliases ...string) *Reader {
 	for _, alias := range aliases {
 		if target, duplicate := this.alias[alias]; duplicate && target != key {
 			log.Panicf("Registration of duplicate alias ('%s') is not allowed.", alias)
 		}
 		this.alias[alias] = key
 	}
+
+	return this
 }
 
 // Strings returns all values associated with the given key or nil
