@@ -675,13 +675,34 @@ func (this *ReaderTestFixture) TestValuesThatReferToEnvironmentVariablesArePasse
 
 //////////////////////////////////////////////////////////////
 
-func (this *ReaderTestFixture) TestKeyInspectsAliasValues() {
-	reader := this.reader.RegisterAlias("string", "string-alias")
+func (this *ReaderTestFixture) TestAliasesResolveCanonicalKeyValues() {
+	reader := this.reader.
+		RegisterAlias("string", "string2").
+		RegisterAlias("string", "string3")
 
-	values, err := this.reader.StringsError("string-alias")
+	values2, err2 := this.reader.StringsError("string2")
+	values3, err3 := this.reader.StringsError("string3")
 
 	this.So(reader, should.Equal, this.reader)
-	this.So(values, should.Resemble, []string{"asdf"})
+
+	this.So(values2, should.Resemble, []string{"asdf"})
+	this.So(err2, should.BeNil)
+
+	this.So(values3, should.Resemble, []string{"asdf"})
+	this.So(err3, should.BeNil)
+}
+
+//////////////////////////////////////////////////////////////
+
+func (this *ReaderTestFixture) TestCanonicalKeyResolvesAliasKeyValues() {
+	this.sources = []Source{&FakeSource{key: "alias", value: []string{"alias-value"}}}
+
+	this.reader = NewReader(this.sources...).
+		RegisterAlias("canonical", "alias")
+
+	values, err := this.reader.StringsError("canonical")
+
+	this.So(values, should.Resemble, []string{"alias-value"})
 	this.So(err, should.BeNil)
 }
 

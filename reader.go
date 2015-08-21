@@ -39,6 +39,7 @@ func NewReader(sources ...Source) *Reader {
 
 func (this *Reader) RegisterAlias(key, alias string) *Reader {
 	this.aliases[alias] = append(this.aliases[alias], key)
+	this.aliases[key] = append(this.aliases[key], alias)
 	return this
 }
 
@@ -53,7 +54,7 @@ func (this *Reader) Strings(key string) []string {
 // if the key does not exist. It does so by searching it sources, in the order
 // they were provided, and returns the first non-error result or KeyNotFoundError.
 func (this *Reader) StringsError(key string) ([]string, error) {
-	for _, alias := range this.getKeys(key) {
+	for _, alias := range this.resolvePossibleKeys(key) {
 		if values, err := this.stringsError(alias); err == nil {
 			return values, nil
 		}
@@ -75,7 +76,7 @@ func (this *Reader) stringsError(key string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
 
-func (this *Reader) getKeys(key string) []string {
+func (this *Reader) resolvePossibleKeys(key string) []string {
 	return append([]string{key}, this.aliases[key]...)
 }
 
