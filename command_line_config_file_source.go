@@ -10,18 +10,18 @@ type CommandLineConfigFileSource struct {
 	json        Source
 }
 
-// NewDefaultCommandLineConfigFileSource registers a command line flag called "config" for specifying
+// FromDefaultCommandLineConfigFileSource registers a command line flag called "config" for specifying
 // an alternate JSON config file.
-func NewDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource {
-	return NewCommandLineConfigFileSource("config")
+func FromDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource {
+	return FromCommandLineConfigFileSource("config")
 }
 
-// NewDefaultCommandLineConfigFileSource registers a command line flag with the given flagName for specifying
+// FromDefaultCommandLineConfigFileSource registers a command line flag with the given flagName for specifying
 // an alternate JSON config file.
-func NewCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource {
+func FromCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource {
 	return &CommandLineConfigFileSource{
 		flagName:    flagName,
-		commandLine: NewCommandLineFlag(flagName, "The default configuration file path."),
+		commandLine: FromCommandLineFlag(flagName, "The default configuration file path."),
 	}
 }
 

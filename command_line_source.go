@@ -11,9 +11,9 @@ type CommandLineSource struct {
 	value *string
 }
 
-// NewCommandLineFlag receives the name, defaultValue, and description of a command line flag.
+// FromCommandLineFlag receives the name, defaultValue, and description of a command line flag.
 // The default value can be of any type handled by the internal convertString function.
-func NewCommandLineFlag(name string, description string) *CommandLineSource {
+func FromCommandLineFlag(name string, description string) *CommandLineSource {
 	return &CommandLineSource{
 		name:  name,
 		value: flag.String(name, "<undefined>", description),
