@@ -20,7 +20,8 @@ via the following constructor methods:
     - FromDevelopmentOnlyDefaults()
     - FromRequiredInProductionJSONFile()
     - NewDefaultCommandLineConfigFileSource()
-    - NewCommandLineConfigFileSource(path string)
+    - FromCommandLineConfigFileSource(path string)
+    - etc...
 
 Any of these sources may be provided to a Reader which is then used to retrieve
 configuration values based on keys contained in the sources.
@@ -57,8 +58,8 @@ functions (but similar methods are implemented for each returned type):
 Here's a full example:
 
     reader := configo.NewReader(
-        NewDefaultCommandLineConfigFileSource(),
-        NewCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
+        FromDefaultCommandLineConfigFileSource(),
+        FromCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
         FromOptionalJSONFile("config-prod.json"),
     )
     value := reader.URL("s3-storage-address")
@@ -85,20 +86,20 @@ this one. It is intened to be used to provide an orveride to the regularly used
 config file(s), like when you might be debugging in production (admit it, you've
 been there too).
 
-#### func  NewCommandLineConfigFileSource
+#### func  FromCommandLineConfigFileSource
 
 ```go
-func NewCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource
+func FromCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource
 ```
-NewDefaultCommandLineConfigFileSource registers a command line flag with the
+FromDefaultCommandLineConfigFileSource registers a command line flag with the
 given flagName for specifying an alternate JSON config file.
 
-#### func  NewDefaultCommandLineConfigFileSource
+#### func  FromDefaultCommandLineConfigFileSource
 
 ```go
-func NewDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource
+func FromDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource
 ```
-NewDefaultCommandLineConfigFileSource registers a command line flag called
+FromDefaultCommandLineConfigFileSource registers a command line flag called
 "config" for specifying an alternate JSON config file.
 
 #### func (*CommandLineConfigFileSource) Initialize
@@ -127,13 +128,13 @@ CommandLineSource registers a single command line flag and stores it's actual
 value, if supplied on the command line. It implements the Source interface so it
 can be used by a Reader.
 
-#### func  NewCommandLineFlag
+#### func  FromCommandLineFlag
 
 ```go
-func NewCommandLineFlag(name string, description string) *CommandLineSource
+func FromCommandLineFlag(name string, description string) *CommandLineSource
 ```
-NewCommandLineFlag receives the name, defaultValue, and description of a command
-line flag. The default value can be of any type handled by the internal
+FromCommandLineFlag receives the name, defaultValue, and description of a
+command line flag. The default value can be of any type handled by the internal
 convertString function.
 
 #### func (*CommandLineSource) Initialize
@@ -338,25 +339,6 @@ func (this *JSONSource) Initialize()
 func (this *JSONSource) Strings(key string) ([]string, error)
 ```
 
-#### type NoopSource
-
-```go
-type NoopSource struct{}
-```
-
-
-#### func (NoopSource) Initialize
-
-```go
-func (this NoopSource) Initialize()
-```
-
-#### func (NoopSource) Strings
-
-```go
-func (this NoopSource) Strings(string) ([]string, error)
-```
-
 #### type Reader
 
 ```go
@@ -502,6 +484,12 @@ func (this *Reader) IntsPanic(key string) []int
 ```
 IntsPanic returns all integer values associated with the given key or panics if
 the key does not exist or the values could not be parsed as integers.
+
+#### func (*Reader) RegisterAlias
+
+```go
+func (this *Reader) RegisterAlias(key, alias string) *Reader
+```
 
 #### func (*Reader) String
 

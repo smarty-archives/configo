@@ -16,7 +16,8 @@
 //     - FromDevelopmentOnlyDefaults()
 //     - FromRequiredInProductionJSONFile()
 //     - NewDefaultCommandLineConfigFileSource()
-//     - NewCommandLineConfigFileSource(path string)
+//     - FromCommandLineConfigFileSource(path string)
+//     - etc...
 //
 // Any of these sources may be provided to a Reader which is then used to
 // retrieve configuration values based on keys contained in the sources.
@@ -54,8 +55,8 @@
 // Here's a full example:
 //
 //     reader := configo.NewReader(
-//         NewDefaultCommandLineConfigFileSource(),
-//         NewCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
+//         FromDefaultCommandLineConfigFileSource(),
+//         FromCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
 //         FromOptionalJSONFile("config-prod.json"),
 //     )
 //     value := reader.URL("s3-storage-address")
