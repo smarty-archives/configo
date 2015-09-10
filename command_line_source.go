@@ -31,11 +31,6 @@ func (this *CommandLineSource) Register(name, description string) *CommandLineSo
 	return this
 }
 
-// setArgSource allows os.Args to be replaced with testing values.
-func (this *CommandLineSource) setArgSource(args []string) {
-	this.source = args
-}
-
 // Parses the internal *flag.FlagSet. Call only after making all Register calls.
 func (this *CommandLineSource) Initialize() {
 	this.flags.Parse(this.source[1:])
