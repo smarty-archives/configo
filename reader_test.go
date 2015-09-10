@@ -1,10 +1,7 @@
 package configo
 
 import (
-	"io/ioutil"
-	"log"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/smartystreets/assertions/should"
@@ -19,7 +16,6 @@ type ReaderTestFixture struct {
 }
 
 func (this *ReaderTestFixture) Setup() {
-	log.SetOutput(ioutil.Discard)
 	this.sources = []Source{
 		&FakeSource{},
 		&FakeSource{key: "string", value: []string{"asdf"}},
@@ -35,9 +31,6 @@ func (this *ReaderTestFixture) Setup() {
 	}
 
 	this.reader = NewReader(this.sources...)
-}
-func (this *ReaderTestFixture) Teardown() {
-	log.SetOutput(os.Stdout)
 }
 
 ////////////////////////////////////////////////////////////////
@@ -107,7 +100,7 @@ func (this *ReaderTestFixture) TestStringsFatal_Found() {
 func (this *ReaderTestFixture) TestStringsFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.StringsFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -178,7 +171,7 @@ func (this *ReaderTestFixture) TestStringFatal_Found() {
 func (this *ReaderTestFixture) TestStringFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.StringFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -260,7 +253,7 @@ func (this *ReaderTestFixture) TestIntsFatal_Found() {
 func (this *ReaderTestFixture) TestIntsFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.IntsFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -269,7 +262,7 @@ func (this *ReaderTestFixture) TestIntsFatal_NotFound() {
 func (this *ReaderTestFixture) TestIntsFatal_MalformedValue() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.IntsFatal("int-bad")
 	this.So(key, should.Equal, "int-bad")
 	this.So(err, should.Equal, MalformedValueError)
@@ -351,7 +344,7 @@ func (this *ReaderTestFixture) TestIntFatal_Found() {
 func (this *ReaderTestFixture) TestIntFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.IntFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -360,7 +353,7 @@ func (this *ReaderTestFixture) TestIntFatal_NotFound() {
 func (this *ReaderTestFixture) TestIntFatal_MalformedValue() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.IntFatal("int-bad")
 	this.So(key, should.Equal, "int-bad")
 	this.So(err, should.Equal, MalformedValueError)
@@ -442,7 +435,7 @@ func (this *ReaderTestFixture) TestBoolFatal_Found() {
 func (this *ReaderTestFixture) TestBoolFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.BoolFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -451,7 +444,7 @@ func (this *ReaderTestFixture) TestBoolFatal_NotFound() {
 func (this *ReaderTestFixture) TestBoolFatal_MalformedValue() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.BoolFatal("bool-bad")
 	this.So(key, should.Equal, "bool-bad")
 	this.So(err, should.Equal, MalformedValueError)
@@ -536,7 +529,7 @@ func (this *ReaderTestFixture) TestURLsFatal_Found() {
 func (this *ReaderTestFixture) TestURLsFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.URLsFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -545,7 +538,7 @@ func (this *ReaderTestFixture) TestURLsFatal_NotFound() {
 func (this *ReaderTestFixture) TestURLsFatal_MalformedValue() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.URLsFatal("url-bad")
 	this.So(key, should.Equal, "url-bad")
 	this.So(err, should.Equal, MalformedValueError)
@@ -627,7 +620,7 @@ func (this *ReaderTestFixture) TestURLFatal_Found() {
 func (this *ReaderTestFixture) TestURLFatal_NotFound() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.URLFatal("balhaafslk")
 	this.So(key, should.Equal, "balhaafslk")
 	this.So(err, should.Equal, KeyNotFoundError)
@@ -636,7 +629,7 @@ func (this *ReaderTestFixture) TestURLFatal_NotFound() {
 func (this *ReaderTestFixture) TestURLFatal_MalformedValue() {
 	var err error
 	var key string
-	fatal = func(k string, e error) { err = e; key = k }
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
 	this.reader.URLFatal("url-bad")
 	this.So(key, should.Equal, "url-bad")
 	this.So(err, should.Equal, MalformedValueError)

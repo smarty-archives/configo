@@ -21,7 +21,7 @@ func FromDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource {
 func FromCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource {
 	return &CommandLineConfigFileSource{
 		flagName:    flagName,
-		commandLine: FromCommandLineFlag(flagName, "The default configuration file path."),
+		commandLine: FromCommandLineFlags().Register(flagName, "The default configuration file path."),
 	}
 }
 

@@ -59,7 +59,7 @@ Here's a full example:
 
     reader := configo.NewReader(
         FromDefaultCommandLineConfigFileSource(),
-        FromCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
+        FromCommandLineFlags().Register("s3-storage-address", "The address of the s3 bucket"),
         FromOptionalJSONFile("config-prod.json"),
     )
     value := reader.URL("s3-storage-address")
@@ -124,34 +124,38 @@ type CommandLineSource struct {
 }
 ```
 
-CommandLineSource registers a single command line flag and stores it's actual
-value, if supplied on the command line. It implements the Source interface so it
-can be used by a Reader.
+CommandLineSource allows for registration of command line flags and stores their
+actual values, if supplied on the command line. It implements the Source
+interface so it can be used by a Reader.
 
-#### func  FromCommandLineFlag
+#### func  FromCommandLineFlags
 
 ```go
-func FromCommandLineFlag(name string, description string) *CommandLineSource
+func FromCommandLineFlags() *CommandLineSource
 ```
-FromCommandLineFlag receives the name, defaultValue, and description of a
-command line flag. The default value can be of any type handled by the internal
-convertString function.
+FromCommandLineFlags creates a new CommandLineSource for use in a Reader.
 
 #### func (*CommandLineSource) Initialize
 
 ```go
 func (this *CommandLineSource) Initialize()
 ```
-Initialize calls flag.Parse(). Do not call until all CommandLineSource instances
-have been created.
+Parses the internal *flag.FlagSet. Call only after making all Register calls.
+
+#### func (*CommandLineSource) Register
+
+```go
+func (this *CommandLineSource) Register(name, description string) *CommandLineSource
+```
+Register adds flags and corresponding usage descriptions to the
+CommandLineSource.
 
 #### func (*CommandLineSource) Strings
 
 ```go
 func (this *CommandLineSource) Strings(key string) ([]string, error)
 ```
-Strings returns the command line flag value, or the default if no value was
-provided at the command line.
+Strings returns the matching command line flag value, or KeyNotFound.
 
 #### type ConditionalSource
 
