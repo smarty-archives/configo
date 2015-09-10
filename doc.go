@@ -56,7 +56,7 @@
 //
 //     reader := configo.NewReader(
 //         FromDefaultCommandLineConfigFileSource(),
-//         FromCommandLineFlag("s3-storage-address", "The address of the s3 bucket"),
+//         FromCommandLineFlags().Register("s3-storage-address", "The address of the s3 bucket"),
 //         FromOptionalJSONFile("config-prod.json"),
 //     )
 //     value := reader.URL("s3-storage-address")

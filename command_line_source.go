@@ -1,48 +1,56 @@
 package configo
 
-import "flag"
+import (
+	"flag"
+	"os"
+)
 
-// CommandLineSource registers a single command line flag
-// and stores it's actual value, if supplied on the command line.
+// CommandLineSource allows for registration of command line flags
+// and stores their actual values, if supplied on the command line.
 // It implements the Source interface so it can be used by a Reader.
 type CommandLineSource struct {
-	isSet bool
-	name  string
-	value *string
+	source   []string
+	flags    *flag.FlagSet
+	registry map[string]*string
+	values   map[string]string
 }
 
-// FromCommandLineFlag receives the name, defaultValue, and description of a command line flag.
-// The default value can be of any type handled by the internal convertString function.
-func FromCommandLineFlag(name string, description string) *CommandLineSource {
+// FromCommandLineFlags creates a new CommandLineSource for use in a Reader.
+func FromCommandLineFlags() *CommandLineSource {
 	return &CommandLineSource{
-		name:  name,
-		value: flag.String(name, "<undefined>", description),
+		source:   os.Args,
+		flags:    flag.NewFlagSet("configo", flag.ContinueOnError),
+		registry: make(map[string]*string),
+		values:   make(map[string]string),
 	}
 }
 
-// Initialize calls flag.Parse(). Do not call until all CommandLineSource instances have been created.
+// Register adds flags and corresponding usage descriptions to the CommandLineSource.
+func (this *CommandLineSource) Register(name, description string) *CommandLineSource {
+	this.registry[name] = this.flags.String(name, "", description)
+	return this
+}
+
+// setArgSource allows os.Args to be replaced with testing values.
+func (this *CommandLineSource) setArgSource(args []string) {
+	this.source = args
+}
+
+// Parses the internal *flag.FlagSet. Call only after making all Register calls.
 func (this *CommandLineSource) Initialize() {
-	flagParse()
-
-	flag.Visit(this.visitor)
+	this.flags.Parse(this.source[1:])
+	this.flags.Visit(this.visitor)
 }
 
-func (this *CommandLineSource) visitor(f *flag.Flag) {
-	if f.Name == this.name {
-		this.isSet = true
-	}
+func (this *CommandLineSource) visitor(flag *flag.Flag) {
+	this.values[flag.Name] = *this.registry[flag.Name]
 }
 
-// Strings returns the command line flag value, or the default if no value was provided at the command line.
+// Strings returns the matching command line flag value, or KeyNotFound.
 func (this *CommandLineSource) Strings(key string) ([]string, error) {
-	if key != this.name {
+	value, found := this.values[key]
+	if !found {
 		return nil, KeyNotFoundError
 	}
-	if !this.isSet {
-		return nil, KeyNotFoundError
-	}
-	return []string{*this.value}, nil
+	return []string{value}, nil
 }
-
-// flagParse forwards to flag.Parse() in production but allows tests to use their own implementation.
-var flagParse = func() { flag.Parse() }
