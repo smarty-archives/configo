@@ -3,6 +3,7 @@ package configo
 import (
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -28,6 +29,10 @@ func (this *ReaderTestFixture) Setup() {
 		&FakeSource{key: "bool-bad", value: []string{"not a bool"}},
 		&FakeSource{key: "url", value: []string{"http://www.google.com"}},
 		&FakeSource{key: "url-bad", value: []string{"%%%%%%"}}, // not a url
+		&FakeSource{key: "duration", value: []string{"5s"}},
+		&FakeSource{key: "duration-bad", value: []string{"not a duration"}},
+		&FakeSource{key: "time", value: []string{"2015-09-15T11:29:00Z"}},
+		&FakeSource{key: "time-bad", value: []string{"not a time"}},
 	}
 
 	this.reader = NewReader(this.sources...)
@@ -651,6 +656,196 @@ func (this *ReaderTestFixture) TestURLDefault_NotFound() {
 }
 
 //////////////////////////////////////////////////////////////
+
+var validDuration, _ = time.ParseDuration("5s")
+
+func (this *ReaderTestFixture) TestDurationError_Found() {
+	value, err := this.reader.DurationError("duration")
+
+	this.So(value, should.Resemble, validDuration)
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestDurationError_NotFound() {
+	value, err := this.reader.DurationError("asdf")
+
+	this.So(value, should.Resemble, time.Duration(0))
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestDurationError_MalformedValue() {
+	value, err := this.reader.DurationError("duration-bad")
+
+	this.So(value, should.Resemble, time.Duration(0))
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestDuration_Found() {
+	value := this.reader.Duration("duration")
+
+	this.So(value, should.Resemble, validDuration)
+}
+
+func (this *ReaderTestFixture) TestDuration_NotFound() {
+	value := this.reader.Duration("qrew")
+
+	this.So(value, should.Resemble, time.Duration(0))
+}
+
+func (this *ReaderTestFixture) TestDuration_MalformedValue() {
+	value := this.reader.Duration("duration-bad")
+
+	this.So(value, should.Resemble, time.Duration(0))
+}
+
+func (this *ReaderTestFixture) TestDurationPanic_Found() {
+	value := this.reader.DurationPanic("duration")
+
+	this.So(value, should.Resemble, validDuration)
+}
+
+func (this *ReaderTestFixture) TestDurationPanic_NotFound() {
+	this.So(func() { this.reader.DurationPanic("blah blah") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestDurationPanic_MalformedValue() {
+	this.So(func() { this.reader.DurationPanic("duration-bad") }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestDurationFatal_Found() {
+	value := this.reader.DurationFatal("duration")
+
+	this.So(value, should.Resemble, validDuration)
+}
+
+func (this *ReaderTestFixture) TestDurationFatal_NotFound() {
+	var err error
+	var key string
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
+	this.reader.DurationFatal("balhaafslk")
+	this.So(key, should.Equal, "balhaafslk")
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestDurationFatal_MalformedValue() {
+	var err error
+	var key string
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
+	this.reader.DurationFatal("duration-bad")
+	this.So(key, should.Equal, "duration-bad")
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+var defaultDuration, _ = time.ParseDuration("10s")
+
+func (this *ReaderTestFixture) TestDurationDefault_Found() {
+	value := this.reader.DurationDefault("duration", defaultDuration)
+
+	this.So(value, should.Resemble, validDuration)
+}
+
+func (this *ReaderTestFixture) TestDurationDefault_NotFound() {
+	value := this.reader.DurationDefault("missing", defaultDuration)
+
+	this.So(value, should.Resemble, defaultDuration)
+}
+
+//////////////////////////////////////////////////////////////
+
+var validTime, _ = time.Parse(time.RFC3339, "2015-09-15T11:29:00Z")
+
+func (this *ReaderTestFixture) TestTimeError_Found() {
+	value, err := this.reader.TimeError("time", time.RFC3339)
+
+	this.So(value, should.Resemble, validTime)
+	this.So(err, should.BeNil)
+}
+
+func (this *ReaderTestFixture) TestTimeError_NotFound() {
+	value, err := this.reader.TimeError("asdf", time.RFC3339)
+
+	this.So(value, should.Resemble, time.Time{})
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestTimeError_MalformedValue() {
+	value, err := this.reader.TimeError("time-bad", time.RFC3339)
+
+	this.So(value, should.Resemble, time.Time{})
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+func (this *ReaderTestFixture) TestTime_Found() {
+	value := this.reader.Time("time", time.RFC3339)
+
+	this.So(value, should.Resemble, validTime)
+}
+
+func (this *ReaderTestFixture) TestTime_NotFound() {
+	value := this.reader.Time("qrew", time.RFC3339)
+
+	this.So(value, should.Resemble, time.Time{})
+}
+
+func (this *ReaderTestFixture) TestTime_MalformedValue() {
+	value := this.reader.Time("time-bad", time.RFC3339)
+
+	this.So(value, should.Resemble, time.Time{})
+}
+
+func (this *ReaderTestFixture) TestTimePanic_Found() {
+	value := this.reader.TimePanic("time", time.RFC3339)
+
+	this.So(value, should.Resemble, validTime)
+}
+
+func (this *ReaderTestFixture) TestTimePanic_NotFound() {
+	this.So(func() { this.reader.TimePanic("blah blah", time.RFC3339) }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestTimePanic_MalformedValue() {
+	this.So(func() { this.reader.TimePanic("time-bad", time.RFC3339) }, should.Panic)
+}
+
+func (this *ReaderTestFixture) TestTimeFatal_Found() {
+	value := this.reader.TimeFatal("time", time.RFC3339)
+
+	this.So(value, should.Resemble, validTime)
+}
+
+func (this *ReaderTestFixture) TestTimeFatal_NotFound() {
+	var err error
+	var key string
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
+	this.reader.TimeFatal("balhaafslk", time.RFC3339)
+	this.So(key, should.Equal, "balhaafslk")
+	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *ReaderTestFixture) TestTimeFatal_MalformedValue() {
+	var err error
+	var key string
+	this.reader.fatal = func(k string, e error) { err = e; key = k }
+	this.reader.TimeFatal("time-bad", time.RFC3339)
+	this.So(key, should.Equal, "time-bad")
+	this.So(err, should.Equal, MalformedValueError)
+}
+
+var defaultTime = time.Now().AddDate(100, 0, 0)
+
+func (this *ReaderTestFixture) TestTimeDefault_Found() {
+	value := this.reader.TimeDefault("time", time.RFC3339, defaultTime)
+
+	this.So(value, should.Resemble, validTime)
+}
+
+func (this *ReaderTestFixture) TestTimeDefault_NotFound() {
+	value := this.reader.TimeDefault("missing", time.RFC3339, defaultTime)
+
+	this.So(value, should.Resemble, defaultTime)
+}
+
+///////////////////////////////////////////////////////////////////////////
 
 func (this *ReaderTestFixture) TestValuesThatReferToEnvironmentVariablesArePassedOnAsKeys() {
 	this.sources = []Source{

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Reader retrieves values from the provided sources, handling conversions
@@ -118,7 +119,7 @@ func (this *Reader) StringsFatal(key string) []string {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // String returns the first value associated with the given key or an empty string
 // if the key does not exist.
@@ -173,7 +174,7 @@ func (this *Reader) StringFatal(key string) string {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Ints returns all integer values associated with the given key or returns 0
 // if the key does not exist.
@@ -232,7 +233,7 @@ func (this *Reader) IntsDefault(key string, Default []int) []int {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Int returns the first integer value associated with the given key or returns 0
 // if the key does not exist.
@@ -288,7 +289,7 @@ func (this *Reader) IntDefault(key string, Default int) int {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Bool returns the boolean value associated with the given key or false
 // if the key does not exist or the value could not be parsed as a bool.
@@ -344,7 +345,7 @@ func (this *Reader) BoolDefault(key string, Default bool) bool {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // URLs returns all URL values associated with the given key or returns the zero value
 // if the key does not exist or the value could not be parsed as a URL.
@@ -404,7 +405,7 @@ func (this *Reader) URLsDefault(key string, Default []url.URL) []url.URL {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // URL returns the first URL associated with the given key or returns the zero value
 // if the key does not exist or the value could not be parsed as a URL.
@@ -459,3 +460,119 @@ func (this *Reader) URLDefault(key string, Default url.URL) url.URL {
 		return value
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Duration returns the first Duration associated with the given key or returns the zero value
+// if the key does not exist or the value could not be parsed as a Duration.
+// For examples of duration strings see http://golang.org/pkg/time/#ParseDuration
+func (this *Reader) Duration(key string) time.Duration {
+	duration, _ := this.DurationError(key)
+	return duration
+}
+
+// DurationError returns the first Duration associated with the given key with an error
+// if the key does not exist or the values could not be parsed as Durations.
+func (this *Reader) DurationError(key string) (time.Duration, error) {
+	raw, err := this.StringError(key)
+	if err != nil {
+		return 0, err
+	}
+
+	parsed, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, MalformedValueError
+	}
+
+	return parsed, nil
+}
+
+// DurationPanic returns the first Duration associated with the given key or panics
+// if the key does not exist or the values could not be parsed as Durations.
+func (this *Reader) DurationPanic(key string) time.Duration {
+	if duration, err := this.DurationError(key); err != nil {
+		panic(err)
+	} else {
+		return duration
+	}
+}
+
+// DurationFatal returns the first Duration associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as Durations.
+func (this *Reader) DurationFatal(key string) time.Duration {
+	if duration, err := this.DurationError(key); err != nil {
+		this.fatal(key, err)
+		return 0
+	} else {
+		return duration
+	}
+}
+
+// DurationDefault returns the first Duration associated with the given key or returns provided default
+// if the key does not exist or the values could not be parsed as Durations.
+func (this *Reader) DurationDefault(key string, Default time.Duration) time.Duration {
+	if duration, err := this.DurationError(key); err != nil {
+		return Default
+	} else {
+		return duration
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Time returns the first Time associated with the given key or returns the zero value
+// if the key does not exist or the value could not be parsed as a Time using the provided format.
+// For examples of format strings see http://golang.org/pkg/time/#pkg-constants
+func (this *Reader) Time(key string, format string) time.Time {
+	parsed, _ := this.TimeError(key, format)
+	return parsed
+}
+
+// TimeError returns the first Time associated with the given key with an error
+// if the key does not exist or the values could not be parsed as Times using the provided format.
+func (this *Reader) TimeError(key string, format string) (time.Time, error) {
+	raw, err := this.StringError(key)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	parsed, err := time.Parse(format, raw)
+	if err != nil {
+		return time.Time{}, MalformedValueError
+	}
+
+	return parsed, nil
+}
+
+// TimePanic returns the first Time associated with the given key or panics
+// if the key does not exist or the values could not be parsed as Times using the provided format.
+func (this *Reader) TimePanic(key string, format string) time.Time {
+	if instant, err := this.TimeError(key, format); err != nil {
+		panic(err)
+	} else {
+		return instant
+	}
+}
+
+// TimeFatal returns the first Time associated with the given key or calls log.Fatal()
+// if the key does not exist or the values could not be parsed as Times using the provided format.
+func (this *Reader) TimeFatal(key string, format string) time.Time {
+	if instant, err := this.TimeError(key, format); err != nil {
+		this.fatal(key, err)
+		return time.Time{}
+	} else {
+		return instant
+	}
+}
+
+// TimeDefault returns the first Time associated with the given key or returns provided default
+// if the key does not exist or the values could not be parsed as Times using the provided format.
+func (this *Reader) TimeDefault(key string, format string, Default time.Time) time.Time {
+	if instant, err := this.TimeError(key, format); err != nil {
+		return Default
+	} else {
+		return instant
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
