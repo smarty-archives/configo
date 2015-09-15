@@ -24,15 +24,15 @@ func (this *EnvironmentSourceFixture) TestNonExistentValue() {
 	this.So(err, should.Equal, KeyNotFoundError)
 }
 func (this *EnvironmentSourceFixture) TestKnownValue() {
-	setEnvironment("configo_Found", "hello")
-	values, err := this.source.Strings("Found")
+	setEnvironment("configo_Found_Single", "hello")
+	values, err := this.source.Strings("Found_Single")
 
 	this.So(values, should.Resemble, []string{"hello"})
 	this.So(err, should.BeNil)
 }
 func (this *EnvironmentSourceFixture) TestKnownValueArray() {
-	setEnvironment("configo_Found", "a,b,c")
-	values, err := this.source.Strings("Found")
+	setEnvironment("configo_Found_Multiple", "a,b,c")
+	values, err := this.source.Strings("Found_Multiple")
 
 	this.So(values, should.Resemble, []string{"a", "b", "c"})
 	this.So(err, should.BeNil)
