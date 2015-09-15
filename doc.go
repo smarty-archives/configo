@@ -61,3 +61,10 @@
 //     )
 //     value := reader.URL("s3-storage-address")
 package configo
+
+// A few useful Date/Time stamp formats:
+const (
+	DateFormat     = "2006-01-02"
+	TimeFormat     = "15:04:05"
+	DateTimeFormat = DateFormat + " " + TimeFormat
+)
