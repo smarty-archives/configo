@@ -404,6 +404,50 @@ func (this *Reader) BoolPanic(key string) bool
 BoolPanic returns the boolean value associated with the given key or panics if
 the key does not exist or the value could not be parsed as a bool.
 
+#### func (*Reader) Duration
+
+```go
+func (this *Reader) Duration(key string) time.Duration
+```
+Duration returns the first Duration associated with the given key or returns the
+zero value if the key does not exist or the value could not be parsed as a
+Duration. For examples of duration strings see
+http://golang.org/pkg/time/#ParseDuration
+
+#### func (*Reader) DurationDefault
+
+```go
+func (this *Reader) DurationDefault(key string, Default time.Duration) time.Duration
+```
+DurationDefault returns the first Duration associated with the given key or
+returns provided default if the key does not exist or the values could not be
+parsed as Durations.
+
+#### func (*Reader) DurationError
+
+```go
+func (this *Reader) DurationError(key string) (time.Duration, error)
+```
+DurationError returns the first Duration associated with the given key with an
+error if the key does not exist or the values could not be parsed as Durations.
+
+#### func (*Reader) DurationFatal
+
+```go
+func (this *Reader) DurationFatal(key string) time.Duration
+```
+DurationFatal returns the first Duration associated with the given key or calls
+log.Fatal() if the key does not exist or the values could not be parsed as
+Durations.
+
+#### func (*Reader) DurationPanic
+
+```go
+func (this *Reader) DurationPanic(key string) time.Duration
+```
+DurationPanic returns the first Duration associated with the given key or panics
+if the key does not exist or the values could not be parsed as Durations.
+
 #### func (*Reader) Int
 
 ```go
@@ -575,6 +619,52 @@ func (this *Reader) StringsPanic(key string) []string
 ```
 StringsPanic returns all values associated with the given key or panics if the
 key does not exist.
+
+#### func (*Reader) Time
+
+```go
+func (this *Reader) Time(key string, format string) time.Time
+```
+Time returns the first Time associated with the given key or returns the zero
+value if the key does not exist or the value could not be parsed as a Time using
+the provided format. For examples of format strings see
+http://golang.org/pkg/time/#pkg-constants
+
+#### func (*Reader) TimeDefault
+
+```go
+func (this *Reader) TimeDefault(key string, format string, Default time.Time) time.Time
+```
+TimeDefault returns the first Time associated with the given key or returns
+provided default if the key does not exist or the values could not be parsed as
+Times using the provided format.
+
+#### func (*Reader) TimeError
+
+```go
+func (this *Reader) TimeError(key string, format string) (time.Time, error)
+```
+TimeError returns the first Time associated with the given key with an error if
+the key does not exist or the values could not be parsed as Times using the
+provided format.
+
+#### func (*Reader) TimeFatal
+
+```go
+func (this *Reader) TimeFatal(key string, format string) time.Time
+```
+TimeFatal returns the first Time associated with the given key or calls
+log.Fatal() if the key does not exist or the values could not be parsed as Times
+using the provided format.
+
+#### func (*Reader) TimePanic
+
+```go
+func (this *Reader) TimePanic(key string, format string) time.Time
+```
+TimePanic returns the first Time associated with the given key or panics if the
+key does not exist or the values could not be parsed as Times using the provided
+format.
 
 #### func (*Reader) URL
 
