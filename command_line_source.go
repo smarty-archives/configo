@@ -15,14 +15,32 @@ type CommandLineSource struct {
 	values   map[string]string
 }
 
+const flagSetName = "configo"
+
 // FromCommandLineFlags creates a new CommandLineSource for use in a Reader.
+// It uses a *flag.FlagSet internally to register and parse the flags.
+// Be default the flag.ErrorHandling mode is set to flag.ExitOnError
 func FromCommandLineFlags() *CommandLineSource {
 	return &CommandLineSource{
 		source:   os.Args,
-		flags:    flag.NewFlagSet("configo", flag.ContinueOnError),
+		flags:    flag.NewFlagSet(flagSetName, flag.ExitOnError),
 		registry: make(map[string]*string),
 		values:   make(map[string]string),
 	}
+}
+
+// ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
+// to flag.ContinueOnError. Must be called before Initialize is called.
+func (this *CommandLineSource) ContinueOnError() *CommandLineSource {
+	this.flags.Init(flagSetName, flag.ContinueOnError)
+	return this
+}
+
+// ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
+// to flag.PanicOnError. Must be called before Initialize is called.
+func (this *CommandLineSource) PanicOnError() *CommandLineSource {
+	this.flags.Init(flagSetName, flag.PanicOnError)
+	return this
 }
 
 // Register adds flags and corresponding usage descriptions to the CommandLineSource.
