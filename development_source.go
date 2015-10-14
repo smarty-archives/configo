@@ -7,7 +7,7 @@ import (
 
 var developmentEnvironment = func() bool {
 	hostname, _ := os.Hostname()
-	return runtime.GOOS == "darwin" || hostname == "vagrant"
+	return runtime.GOOS == "darwin" || hostname == "vagrant" || hostname == "ubuntu1404"
 }
 
 var productionEnvironment = func() bool {
