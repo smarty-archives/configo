@@ -55,3 +55,34 @@ func (this *CommandLineSourceFixture) TestFlagNotDefined__NoValuesReturned() {
 	this.So(values, should.Resemble, expectedValue)
 	this.So(err, should.Equal, KeyNotFoundError)
 }
+
+func (this *CommandLineSourceFixture) TestBooleanFlagDefined() {
+	this.Println(`Simulates requesting the value of a boolean flag`)
+	this.source = FromCommandLineFlags().
+		RegisterBool("flagname1", "This is cool").
+		RegisterBool("flagname2", "This is cooler").
+		RegisterBool("flagname3", "This is coolest").
+		RegisterBool("flagname4", "This is stellar")
+	this.source.source = []string{"./app", "-flagname1", "-flagname2=true", "-flagname3=false"}
+	this.source.Initialize()
+
+	values, err := this.source.Strings("flagname1")
+	this.So(values, should.Resemble, []string{"true"})
+	this.So(err, should.BeNil)
+
+	values, err = this.source.Strings("flagname2")
+	this.So(values, should.Resemble, []string{"true"})
+	this.So(err, should.BeNil)
+
+	values, err = this.source.Strings("flagname3")
+	this.So(values, should.Resemble, []string{"false"})
+	this.So(err, should.BeNil)
+
+	values, err = this.source.Strings("flagname4")
+	this.So(values, should.BeNil)
+	this.So(err, should.Equal, KeyNotFoundError)
+
+	values, err = this.source.Strings("flagname5")
+	this.So(values, should.BeNil)
+	this.So(err, should.Equal, KeyNotFoundError)
+}

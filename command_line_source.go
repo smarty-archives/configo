@@ -3,16 +3,18 @@ package configo
 import (
 	"flag"
 	"os"
+	"strconv"
 )
 
 // CommandLineSource allows for registration of command line flags
 // and stores their actual values, if supplied on the command line.
 // It implements the Source interface so it can be used by a Reader.
 type CommandLineSource struct {
-	source   []string
-	flags    *flag.FlagSet
-	registry map[string]*string
-	values   map[string]string
+	source       []string
+	flags        *flag.FlagSet
+	registry     map[string]*string
+	boolRegistry map[string]*bool
+	values       map[string]string
 }
 
 const flagSetName = "configo"
@@ -22,10 +24,11 @@ const flagSetName = "configo"
 // Be default the flag.ErrorHandling mode is set to flag.ExitOnError
 func FromCommandLineFlags() *CommandLineSource {
 	return &CommandLineSource{
-		source:   os.Args,
-		flags:    flag.NewFlagSet(flagSetName, flag.ExitOnError),
-		registry: make(map[string]*string),
-		values:   make(map[string]string),
+		source:       os.Args,
+		flags:        flag.NewFlagSet(flagSetName, flag.ExitOnError),
+		registry:     make(map[string]*string),
+		boolRegistry: make(map[string]*bool),
+		values:       make(map[string]string),
 	}
 }
 
@@ -49,6 +52,14 @@ func (this *CommandLineSource) Register(name, description string) *CommandLineSo
 	return this
 }
 
+// RegisterBool adds boolean flags and corresponding usage descriptions to the CommandLineSource.
+// The advantage of this method over Register for boolean values is that the user can merely
+// supply the flag without a value to set the boolean flag to true. This doesn't work with Register.
+func (this *CommandLineSource) RegisterBool(name, description string) *CommandLineSource {
+	this.boolRegistry[name] = this.flags.Bool(name, false, description)
+	return this
+}
+
 // Parses the internal *flag.FlagSet. Call only after making all Register calls.
 func (this *CommandLineSource) Initialize() {
 	this.flags.Parse(this.source[1:])
@@ -56,7 +67,11 @@ func (this *CommandLineSource) Initialize() {
 }
 
 func (this *CommandLineSource) visitor(flag *flag.Flag) {
-	this.values[flag.Name] = *this.registry[flag.Name]
+	if b, found := this.boolRegistry[flag.Name]; found {
+		this.values[flag.Name] = strconv.FormatBool(*b)
+	} else {
+		this.values[flag.Name] = *this.registry[flag.Name]
+	}
 }
 
 // Strings returns the matching command line flag value, or KeyNotFound.
