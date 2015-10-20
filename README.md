@@ -67,6 +67,15 @@ Here's a full example:
 ## Usage
 
 ```go
+const (
+	DateFormat     = "2006-01-02"
+	TimeFormat     = "15:04:05"
+	DateTimeFormat = DateFormat + " " + TimeFormat
+)
+```
+A few useful Date/Time stamp formats:
+
+```go
 var (
 	KeyNotFoundError    = errors.New("The specified key was not found.")
 	MalformedValueError = errors.New("The specified value could not be parsed.")
@@ -133,7 +142,17 @@ interface so it can be used by a Reader.
 ```go
 func FromCommandLineFlags() *CommandLineSource
 ```
-FromCommandLineFlags creates a new CommandLineSource for use in a Reader.
+FromCommandLineFlags creates a new CommandLineSource for use in a Reader. It
+uses a *flag.FlagSet internally to register and parse the flags. Be default the
+flag.ErrorHandling mode is set to flag.ExitOnError
+
+#### func (*CommandLineSource) ContinueOnError
+
+```go
+func (this *CommandLineSource) ContinueOnError() *CommandLineSource
+```
+ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
+to flag.ContinueOnError. Must be called before Initialize is called.
 
 #### func (*CommandLineSource) Initialize
 
@@ -142,6 +161,14 @@ func (this *CommandLineSource) Initialize()
 ```
 Parses the internal *flag.FlagSet. Call only after making all Register calls.
 
+#### func (*CommandLineSource) PanicOnError
+
+```go
+func (this *CommandLineSource) PanicOnError() *CommandLineSource
+```
+ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
+to flag.PanicOnError. Must be called before Initialize is called.
+
 #### func (*CommandLineSource) Register
 
 ```go
@@ -149,6 +176,16 @@ func (this *CommandLineSource) Register(name, description string) *CommandLineSo
 ```
 Register adds flags and corresponding usage descriptions to the
 CommandLineSource.
+
+#### func (*CommandLineSource) RegisterBool
+
+```go
+func (this *CommandLineSource) RegisterBool(name, description string) *CommandLineSource
+```
+RegisterBool adds boolean flags and corresponding usage descriptions to the
+CommandLineSource. The advantage of this method over Register for boolean values
+is that the user can merely supply the flag without a value to set the boolean
+flag to true. This doesn't work with Register.
 
 #### func (*CommandLineSource) Strings
 
