@@ -1,6 +1,7 @@
 package configo
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/smartystreets/assertions/should"
@@ -10,6 +11,7 @@ import (
 type CommandLineSourceFixture struct {
 	*gunit.Fixture
 	source *CommandLineSource
+	output *bytes.Buffer
 }
 
 var commandLineValue = "value from command line"
@@ -85,4 +87,20 @@ func (this *CommandLineSourceFixture) TestBooleanFlagDefined() {
 	values, err = this.source.Strings("flagname5")
 	this.So(values, should.BeNil)
 	this.So(err, should.Equal, KeyNotFoundError)
+}
+
+func (this *CommandLineSourceFixture) TestUsageMessage() {
+	this.source = FromCommandLineFlags().
+		Register("something", "yeah").
+		Usage("This is some helpful text").
+		ContinueOnError()
+	this.source.source = []string{"./app", "-help", "-something"}
+	buffer := new(bytes.Buffer)
+	this.source.SetOutput(buffer)
+
+	this.source.Initialize()
+
+	this.So(buffer.String(), should.ContainSubstring, "-something")
+	this.So(buffer.String(), should.ContainSubstring, "yeah")
+	this.So(buffer.String(), should.ContainSubstring, "This is some helpful text")
 }

@@ -2,6 +2,8 @@ package configo
 
 import (
 	"flag"
+	"fmt"
+	"io"
 	"os"
 	"strconv"
 )
@@ -15,6 +17,8 @@ type CommandLineSource struct {
 	registry     map[string]*string
 	boolRegistry map[string]*bool
 	values       map[string]string
+	output       io.Writer
+	usageMessage string
 }
 
 const flagSetName = "configo"
@@ -60,10 +64,37 @@ func (this *CommandLineSource) RegisterBool(name, description string) *CommandLi
 	return this
 }
 
+// Usage appends a custom message to the end of what is normally printed
+// by flag.PrintDefaults().
+func (this *CommandLineSource) Usage(message string) *CommandLineSource {
+	this.usageMessage = message
+	return this
+}
+
+// SetOutput allows printing to an io.Writer other than os.Stderr, the default.
+func (this *CommandLineSource) SetOutput(writer io.Writer) {
+	this.flags.SetOutput(writer)
+	this.output = writer
+}
+
 // Parses the internal *flag.FlagSet. Call only after making all Register calls.
 func (this *CommandLineSource) Initialize() {
+	this.flags.Usage = this.usage
 	this.flags.Parse(this.source[1:])
 	this.flags.Visit(this.visitor)
+}
+
+func (this *CommandLineSource) usage() {
+	fmt.Fprintf(this.out(), "Usage of %s:\n", os.Args[0])
+	this.flags.PrintDefaults()
+	fmt.Fprintln(this.out(), this.usageMessage)
+}
+
+func (this *CommandLineSource) out() io.Writer {
+	if this.output == nil {
+		return os.Stderr
+	}
+	return this.output
 }
 
 func (this *CommandLineSource) visitor(flag *flag.Flag) {
