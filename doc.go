@@ -8,7 +8,7 @@
 //     - EnvironmentSource (key/value pairs from the environment)
 //     - CommandLineSource (key/value pairs via command line flags)
 //     - DefaultSource (key/value pairs manually configured by the application)
-//     - ConditionalSource (filters key/value retreival based on a condition)
+//     - ConditionalSource (filters key/value retrieval based on a condition)
 //
 // These basic sources have been composed into additional sources, made
 // available via the following constructor methods:
