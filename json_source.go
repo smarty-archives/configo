@@ -2,13 +2,24 @@ package configo
 
 import (
 	"encoding/json"
+	"flag"
 	"io/ioutil"
+	"os"
 	"strconv"
 )
 
 // JSONSource houses key-value pairs unmarshaled from JSON data.
 type JSONSource struct {
 	values map[string]interface{}
+}
+
+// FromConfigurableJSONFile allows the user to configure the config file path
+// via the -config command line flag.
+func FromConfigurableJSONFile() *JSONSource {
+	flags := flag.NewFlagSet("config-file", flag.ContinueOnError)
+	filename := flags.String("config", "config.json", "The path to the JSON config file.")
+	flags.Parse(os.Args)
+	return FromJSONFile(*filename)
 }
 
 // FromJSONFile reads and unmarshals the file at the provided path into a JSONSource.
@@ -52,7 +63,7 @@ func FromJSONContent(raw []byte) *JSONSource {
 }
 
 func (this *JSONSource) Strings(key string) ([]string, error) {
-	// FUTURE: if contents of key contain a hypen, change it to an underscore?
+	// FUTURE: if contents of key contain a hyphen, change it to an underscore?
 	// FUTURE: split on / character to indicate another level
 	if item, found := this.values[key]; found {
 		return toStrings(item), nil
