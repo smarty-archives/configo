@@ -2,8 +2,8 @@ package configo
 
 import (
 	"os"
-	"runtime"
 	"os/user"
+	"runtime"
 )
 
 var developmentEnvironment = func() bool {
@@ -12,7 +12,7 @@ var developmentEnvironment = func() bool {
 	return runtime.GOOS == "darwin" ||
 		hostname == "vagrant" ||
 		hostname == "ubuntu1404" ||
-		vagrant == nil
+		vagrant != nil
 }
 
 var productionEnvironment = func() bool {
