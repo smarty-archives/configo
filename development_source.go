@@ -3,11 +3,16 @@ package configo
 import (
 	"os"
 	"runtime"
+	"os/user"
 )
 
 var developmentEnvironment = func() bool {
 	hostname, _ := os.Hostname()
-	return runtime.GOOS == "darwin" || hostname == "vagrant" || hostname == "ubuntu1404"
+	vagrant, _ := user.Lookup("vagrant")
+	return runtime.GOOS == "darwin" ||
+		hostname == "vagrant" ||
+		hostname == "ubuntu1404" ||
+		vagrant == nil
 }
 
 var productionEnvironment = func() bool {
