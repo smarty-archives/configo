@@ -18,7 +18,7 @@ type JSONSource struct {
 func FromConfigurableJSONFile() *JSONSource {
 	flags := flag.NewFlagSet("config-file", flag.ContinueOnError)
 	filename := flags.String("config", "config.json", "The path to the JSON config file.")
-	flags.Parse(os.Args)
+	flags.Parse(os.Args[1:]) // don't include the command name (argument #0).
 	return FromJSONFile(*filename)
 }
 
