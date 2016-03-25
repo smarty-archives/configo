@@ -3,7 +3,7 @@
 default: test
 
 test: build
-	go test
+	go test -short
 
 cover: build
 	go test -coverprofile=coverage.out
