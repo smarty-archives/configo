@@ -1,7 +1,5 @@
 package configo
 
-// TODO: this is a future configo source
-
 import (
 	"encoding/json"
 	"io"
@@ -9,12 +7,11 @@ import (
 	"net"
 	"net/http"
 
-	vaultapi "github.com/hashicorp/vault/api"
-	// "github.com/smartystreets/configo"
+	// vaultapi "github.com/hashicorp/vault/api"
 )
 
 type HostTools struct {
-	winnerChannel  chan *VaultNode
+	winnerChannel  chan string
 	errorChannel   chan bool
 	failureChannel chan bool
 
@@ -26,14 +23,10 @@ var (
 	token string
 )
 
-// FromVaultDocument(vault_token, vault.ss.net, document_name) *jsonsource
-// type JSONSource struct {
-// 	values map[string]interface{}
-// }
 func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSource {
 	token = vault_token
 	hostTools := HostTools{
-		winnerChannel:  make(chan *VaultNode, 1),
+		winnerChannel:  make(chan string, 1),
 		errorChannel:   make(chan bool),
 		failureChannel: make(chan bool),
 
@@ -46,18 +39,16 @@ func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSo
 		hostTools.findBestHost()
 		select {
 		case winner := <-hostTools.winnerChannel:
-			log.Println("[INFO] Winner:", winner.address)
-			// we have a winner, where shall we send it?
-			// document, err := winner.client.Logical().Read("secret/smartystreets")
-			document, err := getVaultDocument(winner.address)
+			log.Println("[INFO] Winner:", winner)
+			document, err := getVaultDocument(winner)
 			if err != nil {
-				log.Println("[ERROR] Vault read error:", err)
+				log.Println("[ERROR] Vault document read error:", err)
 			}
 			if document != nil {
 				return &JSONSource{values: document}
 			} else {
 				// else retry
-				log.Printf("[INFO] Document from %s was empty", winner.address)
+				log.Printf("[INFO] Document from %s was empty", winner)
 			}
 		case <-hostTools.failureChannel:
 			log.Println("[INFO] All host addresses have been checked, no winner found")
@@ -69,16 +60,9 @@ func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSo
 /////////////////////////////////////////
 
 func getVaultDocument(address string) (map[string]interface{}, error) {
-	client := &http.Client{}
-	// GET http://127.0.0.1:8200/v1/secret/smartystreets
-	request, err := http.NewRequest("GET", "http://"+address+":8200/v1/secret/smartystreets2", nil)
+	response, err := vaultClient(address, "secret/smartystreets")
 	if err != nil {
-		return nil, err
-	}
-	request.Header.Add("X-Vault-Token", token)
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
+		log.Println("vaultclient error:", err)
 	}
 
 	document, err := parseDocument(response.Body)
@@ -108,47 +92,42 @@ func (this *HostTools) findBestHost() {
 	}
 }
 
-type VaultNode struct {
-	address string
-	client  *vaultapi.Client
-}
-
-func NewVaultNode(address string, client *vaultapi.Client) *VaultNode {
-	return &VaultNode{
-		address: address,
-		client:  client,
+func vaultClient(address, path string) (*http.Response, error) {
+	client := &http.Client{}
+	request, err := http.NewRequest("GET", "http://"+address+":8200/v1/"+path, nil)
+	if err != nil {
+		return nil, err
 	}
+	request.Header.Add("X-Vault-Token", token)
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (this *HostTools) getVaultNode(host string) {
-	client := newVaultClient(host)
-	status, err := client.Sys().SealStatus()
+	response, err := vaultClient(host, "sys/health")
 	if err != nil {
-		log.Println("[ERROR] SealStatus check:", err)
-		this.errorChannel <- true
-		return
+		log.Printf("[ERROR] Vault server is not accessible (%s): %s", host, err)
 	}
-	if status.Sealed {
-		log.Printf("[WARN] Node at %s is still sealed\n", host)
-		this.errorChannel <- true
-		return
+	// fmt.Printf("\nseal-status raw: %#v (%s)\n", response, host)
+	// fmt.Printf("seal-status: %v (%s)\n", response, host)
+	if response != nil {
+		// fmt.Printf("status code: %#v (%s)\n", response.StatusCode, host)
+		switch response.StatusCode {
+		case 200:
+			// vault is ready to rock and roll
+			this.winnerChannel <- host
+			return
+		case 429:
+			log.Printf("[ERROR] Vault server is unsealed but in standby mode (%s)", host)
+		case 500:
+			log.Printf("[ERROR] Vault server is sealed or not initialized (%s)", host)
+		}
 	}
-
-	this.winnerChannel <- NewVaultNode(host, client)
-}
-
-func newVaultClient(host string) *vaultapi.Client {
-	config := vaultapi.DefaultConfig()
-
-	config.Address = "http://" + host + ":8200"
-	client, err := vaultapi.NewClient(config)
-	if err != nil {
-		log.Println("[ERROR] Initializing vault client:", err)
-	}
-
-	client.SetToken(token)
-
-	return client
+	this.errorChannel <- true
 }
 
 func (this *HostTools) getHostList() []string {
