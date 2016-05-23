@@ -6,8 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-
-	// vaultapi "github.com/hashicorp/vault/api"
 )
 
 type HostTools struct {
@@ -17,20 +15,19 @@ type HostTools struct {
 
 	hostsAddress  string
 	numberOfHosts int
+	token         string
+	documentName  string
 }
 
-var (
-	token string
-)
-
 func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSource {
-	token = vault_token
 	hostTools := HostTools{
 		winnerChannel:  make(chan string, 1),
 		errorChannel:   make(chan bool),
 		failureChannel: make(chan bool),
 
 		hostsAddress: hosts_address,
+		token:        vault_token,
+		documentName: document_name,
 	}
 
 	maxRetry := 2
@@ -40,29 +37,26 @@ func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSo
 		select {
 		case winner := <-hostTools.winnerChannel:
 			log.Println("[INFO] Winner:", winner)
-			document, err := getVaultDocument(winner)
+			document, err := hostTools.getVaultDocument(winner)
 			if err != nil {
 				log.Println("[ERROR] Vault document read error:", err)
 			}
 			if document != nil {
 				return &JSONSource{values: document}
-			} else {
-				// else retry
-				log.Printf("[INFO] Document from %s was empty", winner)
 			}
 		case <-hostTools.failureChannel:
 			log.Println("[INFO] All host addresses have been checked, no winner found")
 		}
 	}
-	panic("AIEEEEEEEE!!!!!")
+	panic("Unable to procure vault document")
 }
 
 /////////////////////////////////////////
 
-func getVaultDocument(address string) (map[string]interface{}, error) {
-	response, err := vaultClient(address, "secret/smartystreets")
+func (this *HostTools) getVaultDocument(address string) (map[string]interface{}, error) {
+	response, err := this.vaultClient(address, this.documentName)
 	if err != nil {
-		log.Println("vaultclient error:", err)
+		return nil, err
 	}
 
 	document, err := parseDocument(response.Body)
@@ -76,7 +70,6 @@ func getVaultDocument(address string) (map[string]interface{}, error) {
 func parseDocument(responseBody io.Reader) (*SecretDocument, error) {
 	var document SecretDocument
 	decoder := json.NewDecoder(responseBody)
-	// decoder.UseNumber()
 	if err := decoder.Decode(&document); err != nil {
 		return nil, err
 	}
@@ -92,13 +85,13 @@ func (this *HostTools) findBestHost() {
 	}
 }
 
-func vaultClient(address, path string) (*http.Response, error) {
+func (this *HostTools) vaultClient(address, path string) (*http.Response, error) {
 	client := &http.Client{}
 	request, err := http.NewRequest("GET", "http://"+address+":8200/v1/"+path, nil)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Add("X-Vault-Token", token)
+	request.Header.Add("X-Vault-Token", this.token)
 	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
@@ -108,17 +101,13 @@ func vaultClient(address, path string) (*http.Response, error) {
 }
 
 func (this *HostTools) getVaultNode(host string) {
-	response, err := vaultClient(host, "sys/health")
+	response, err := this.vaultClient(host, "sys/health")
 	if err != nil {
 		log.Printf("[ERROR] Vault server is not accessible (%s): %s", host, err)
 	}
-	// fmt.Printf("\nseal-status raw: %#v (%s)\n", response, host)
-	// fmt.Printf("seal-status: %v (%s)\n", response, host)
 	if response != nil {
-		// fmt.Printf("status code: %#v (%s)\n", response.StatusCode, host)
 		switch response.StatusCode {
 		case 200:
-			// vault is ready to rock and roll
 			this.winnerChannel <- host
 			return
 		case 429:
@@ -151,6 +140,7 @@ func (this *HostTools) watchForProblems() {
 
 /////////////////////////////////////////
 
+// From -> https://github.com/hashicorp/vault/blob/master/api/secret.go
 type SecretDocument struct {
 	LeaseID       string `json:"lease_id"`
 	LeaseDuration int    `json:"lease_duration"`
