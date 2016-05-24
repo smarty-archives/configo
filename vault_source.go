@@ -42,7 +42,7 @@ func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSo
 				log.Println("[ERROR] Vault document read error:", err)
 			}
 			if document != nil {
-				return &JSONSource{values: document}
+				return FromJSONObject(document)
 			}
 		case <-hostTools.failureChannel:
 			log.Println("[INFO] All host addresses have been checked, no winner found")
@@ -80,8 +80,8 @@ func parseDocument(responseBody io.Reader) (*SecretDocument, error) {
 
 func (this *HostTools) findBestHost() {
 	go this.watchForProblems()
-	for _, host := range this.getHostList() {
-		go this.getVaultNode(host)
+	for _, ip := range this.getIPList() {
+		go this.getVaultNode(ip)
 	}
 }
 
@@ -119,13 +119,13 @@ func (this *HostTools) getVaultNode(host string) {
 	this.errorChannel <- true
 }
 
-func (this *HostTools) getHostList() []string {
-	hosts, err := net.LookupHost(this.hostsAddress)
+func (this *HostTools) getIPList() []string {
+	ips, err := net.LookupHost(this.hostsAddress)
 	if err != nil {
 		log.Fatalf("[ERROR] %s", err)
 	}
-	this.numberOfHosts = len(hosts)
-	return hosts
+	this.numberOfHosts = len(ips)
+	return ips
 }
 
 func (this *HostTools) watchForProblems() {
