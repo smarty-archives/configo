@@ -59,6 +59,10 @@ func FromJSONContent(raw []byte) *JSONSource {
 		panic(err)
 	}
 
+	return FromJSONObject(values)
+}
+
+func FromJSONObject(values map[string]interface{}) *JSONSource {
 	return &JSONSource{values: values}
 }
 
