@@ -1,6 +1,7 @@
 package configo
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"log"
@@ -85,9 +86,14 @@ func (this *HostTools) findBestHost() {
 	}
 }
 
+func (this *HostTools) dialTLS(network, address string) (net.Conn, error) {
+	return tls.Dial(network, address, &tls.Config{ServerName: this.hostsAddress})
+}
 func (this *HostTools) vaultClient(address, path string) (*http.Response, error) {
-	client := &http.Client{}
-	request, err := http.NewRequest("GET", "http://"+address+":8200/v1/"+path, nil)
+	client := &http.Client{
+		Transport: &http.Transport{DialTLS: this.dialTLS},
+	}
+	request, err := http.NewRequest("GET", "https://"+address+":8200/v1/"+path, nil)
 	if err != nil {
 		return nil, err
 	}
