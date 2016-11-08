@@ -1,9 +1,15 @@
 package configo
 
 import (
+	"testing"
+
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestJSONSourceFixture(t *testing.T) {
+	gunit.Run(new(JSONSourceFixture), t)
+}
 
 type JSONSourceFixture struct {
 	*gunit.Fixture

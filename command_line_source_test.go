@@ -3,10 +3,15 @@ package configo
 import (
 	"bytes"
 	"fmt"
+	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestCommandLineSourceFixture(t *testing.T) {
+	gunit.Run(new(CommandLineSourceFixture), t)
+}
 
 type CommandLineSourceFixture struct {
 	*gunit.Fixture

@@ -3,11 +3,16 @@ package configo
 import (
 	"net/url"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestReaderTestFixture(t *testing.T) {
+	gunit.Run(new(ReaderTestFixture), t)
+}
 
 type ReaderTestFixture struct {
 	*gunit.Fixture

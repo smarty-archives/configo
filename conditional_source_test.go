@@ -1,9 +1,15 @@
 package configo
 
 import (
+	"testing"
+
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestConditionalSourceFixture(t *testing.T) {
+	gunit.Run(new(ConditionalSourceFixture), t)
+}
 
 type ConditionalSourceFixture struct {
 	*gunit.Fixture

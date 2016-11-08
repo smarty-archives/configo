@@ -2,11 +2,16 @@ package configo
 
 import (
 	"net/url"
+	"testing"
 	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestDefaultSourceFixture(t *testing.T) {
+	gunit.Run(new(DefaultSourceFixture), t)
+}
 
 type DefaultSourceFixture struct {
 	*gunit.Fixture

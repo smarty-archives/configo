@@ -11,7 +11,6 @@ cover: build
 
 build:
 	go build
-	go generate
 
 document:
 	go install github.com/robertkrimen/godocdown/godocdown

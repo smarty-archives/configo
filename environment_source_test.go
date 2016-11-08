@@ -2,10 +2,15 @@ package configo
 
 import (
 	"os"
+	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestEnvironmentSourceFixture(t *testing.T) {
+	gunit.Run(new(EnvironmentSourceFixture), t)
+}
 
 type EnvironmentSourceFixture struct {
 	*gunit.Fixture
