@@ -9,53 +9,36 @@ import (
 	"net/http"
 )
 
-type HostTools struct {
-	winnerChannel  chan string
-	errorChannel   chan bool
-	failureChannel chan bool
-
-	hostsAddress  string
-	numberOfHosts int
+type Vault struct {
 	token         string
-	documentName  string
+	address       string
+	document_name string
 }
 
-func FromVaultDocument(vault_token, hosts_address, document_name string) *JSONSource {
-	hostTools := HostTools{
-		winnerChannel:  make(chan string, 1),
-		errorChannel:   make(chan bool),
-		failureChannel: make(chan bool),
+func newVault(token, address, document_name string) *Vault {
+	return &Vault{
+		token:         token,
+		address:       address,
+		document_name: document_name,
+	}
+}
 
-		hostsAddress: hosts_address,
-		token:        vault_token,
-		documentName: document_name,
+func FromVaultDocument(token, address, document_name string) *JSONSource {
+	vault := newVault(token, address, document_name)
+	vault.token = token
+
+	document, err := vault.getDocument()
+	if err != nil {
+		log.Panic("[ERROR] Vault document read error:", err)
 	}
 
-	maxRetry := 2
-	for i := 0; i < maxRetry; i++ {
-		log.Println("[INFO] Finding best host...")
-		hostTools.findBestHost()
-		select {
-		case winner := <-hostTools.winnerChannel:
-			log.Println("[INFO] Winner:", winner)
-			document, err := hostTools.getVaultDocument(winner)
-			if err != nil {
-				log.Println("[ERROR] Vault document read error:", err)
-			}
-			if document != nil {
-				return FromJSONObject(document)
-			}
-		case <-hostTools.failureChannel:
-			log.Println("[INFO] All host addresses have been checked, no winner found")
-		}
-	}
-	panic("Unable to procure vault document")
+	return FromJSONObject(document)
 }
 
 /////////////////////////////////////////
 
-func (this *HostTools) getVaultDocument(address string) (map[string]interface{}, error) {
-	response, err := this.vaultClient(address, this.documentName)
+func (this *Vault) getDocument() (map[string]interface{}, error) {
+	response, err := this.requestDocument()
 	if err != nil {
 		return nil, err
 	}
@@ -79,69 +62,25 @@ func parseDocument(responseBody io.Reader) (*SecretDocument, error) {
 
 /////////////////////////////////////////
 
-func (this *HostTools) findBestHost() {
-	go this.watchForProblems()
-	for _, ip := range this.getIPList() {
-		go this.getVaultNode(ip)
-	}
+func (this *Vault) dialTLS(network, address string) (net.Conn, error) {
+	return tls.Dial(network, address, &tls.Config{ServerName: this.address})
 }
 
-func (this *HostTools) dialTLS(network, address string) (net.Conn, error) {
-	return tls.Dial(network, address, &tls.Config{ServerName: this.hostsAddress})
-}
-func (this *HostTools) vaultClient(address, path string) (*http.Response, error) {
-	client := &http.Client{
+func (this *Vault) requestDocument() (*http.Response, error) {
+	httpClient := &http.Client{
 		Transport: &http.Transport{DialTLS: this.dialTLS},
 	}
-	request, err := http.NewRequest("GET", "https://"+address+":8200/v1/"+path, nil)
+	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.document_name, nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("X-Vault-Token", this.token)
-	response, err := client.Do(request)
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
 
 	return response, nil
-}
-
-func (this *HostTools) getVaultNode(host string) {
-	response, err := this.vaultClient(host, "sys/health")
-	if err != nil {
-		log.Printf("[ERROR] Vault server is not accessible (%s): %s", host, err)
-	}
-	if response != nil {
-		switch response.StatusCode {
-		case 200:
-			this.winnerChannel <- host
-			return
-		case 429:
-			log.Printf("[ERROR] Vault server is unsealed but in standby mode (%s)", host)
-		case 500:
-			log.Printf("[ERROR] Vault server is sealed or not initialized (%s)", host)
-		}
-	}
-	this.errorChannel <- true
-}
-
-func (this *HostTools) getIPList() []string {
-	ips, err := net.LookupHost(this.hostsAddress)
-	if err != nil {
-		log.Fatalf("[ERROR] %s", err)
-	}
-	this.numberOfHosts = len(ips)
-	return ips
-}
-
-func (this *HostTools) watchForProblems() {
-	for i := 1; ; i++ {
-		<-this.errorChannel
-		if i >= this.numberOfHosts {
-			break
-		}
-	}
-	this.failureChannel <- true
 }
 
 /////////////////////////////////////////
