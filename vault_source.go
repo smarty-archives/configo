@@ -29,7 +29,7 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 
 	document, err := vault.getDocument()
 	if err != nil {
-		log.Panic("[ERROR] Vault document read error:", err)
+		log.Panic("[ERROR] Vault document read error:", err) // TODO: only panic after N retries failed
 	}
 
 	return FromJSONObject(document)
@@ -57,7 +57,7 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 	if err := decoder.Decode(&document); err != nil {
 		return nil, err
 	}
-	return &document, nil
+	return &document, nil // TODO: log any warnings that came back
 }
 
 /////////////////////////////////////////
@@ -68,14 +68,14 @@ func (this *Vault) dialTLS(network, address string) (net.Conn, error) {
 
 func (this *Vault) requestDocument() (*http.Response, error) {
 	httpClient := &http.Client{
-		Transport: &http.Transport{DialTLS: this.dialTLS},
+		Transport: &http.Transport{DialTLS: this.dialTLS}, // TODO: timeouts
 	}
 	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.documentName, nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("X-Vault-Token", this.token)
-	response, err := httpClient.Do(request)
+	response, err := httpClient.Do(request) // TODO: retry
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (this *Vault) requestDocument() (*http.Response, error) {
 
 /////////////////////////////////////////
 
-// From -> https://github.com/hashicorp/vault/blob/master/api/secret.go
+// From https://github.com/hashicorp/vault/blob/master/api/secret.go
 type vaultDocument struct {
 	LeaseID       string `json:"lease_id"`
 	LeaseDuration int    `json:"lease_duration"`
