@@ -10,21 +10,21 @@ import (
 )
 
 type Vault struct {
-	token         string
-	address       string
-	document_name string
+	token        string
+	address      string
+	documentName string
 }
 
-func newVault(token, address, document_name string) *Vault {
+func newVault(token, address, documentName string) *Vault {
 	return &Vault{
-		token:         token,
-		address:       address,
-		document_name: document_name,
+		token:        token,
+		address:      address,
+		documentName: documentName,
 	}
 }
 
-func FromVaultDocument(token, address, document_name string) *JSONSource {
-	vault := newVault(token, address, document_name)
+func FromVaultDocument(token, address, documentName string) *JSONSource {
+	vault := newVault(token, address, documentName)
 	vault.token = token
 
 	document, err := vault.getDocument()
@@ -51,8 +51,8 @@ func (this *Vault) getDocument() (map[string]interface{}, error) {
 	return document.Data, nil
 }
 
-func parseDocument(responseBody io.Reader) (*SecretDocument, error) {
-	var document SecretDocument
+func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
+	var document vaultDocument
 	decoder := json.NewDecoder(responseBody)
 	if err := decoder.Decode(&document); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (this *Vault) requestDocument() (*http.Response, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{DialTLS: this.dialTLS},
 	}
-	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.document_name, nil)
+	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.documentName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (this *Vault) requestDocument() (*http.Response, error) {
 /////////////////////////////////////////
 
 // From -> https://github.com/hashicorp/vault/blob/master/api/secret.go
-type SecretDocument struct {
+type vaultDocument struct {
 	LeaseID       string `json:"lease_id"`
 	LeaseDuration int    `json:"lease_duration"`
 	Renewable     bool   `json:"renewable"`
@@ -102,10 +102,10 @@ type SecretDocument struct {
 
 	// Auth, if non-nil, means that there was authentication information
 	// attached to this response.
-	// Auth *SecretAuth `json:"auth,omitempty"`
-	Auth SecretAuth `json:"auth,omitempty"`
+	// Auth *vaultAuthentication `json:"auth,omitempty"`
+	Auth vaultAuthentication `json:"auth,omitempty"`
 }
-type SecretAuth struct {
+type vaultAuthentication struct {
 	ClientToken string            `json:"client_token"`
 	Accessor    string            `json:"accessor"`
 	Policies    []string          `json:"policies"`
