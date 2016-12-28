@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 )
 
 type Vault struct {
@@ -57,7 +58,7 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 	if err := decoder.Decode(&document); err != nil {
 		return nil, err
 	}
-	return &document, nil // TODO: log any warnings that came back
+	return &document, nil // TODO: when retry is added, log any warnings that came back, even if they are not fatal
 }
 
 /////////////////////////////////////////
@@ -68,19 +69,51 @@ func (this *Vault) dialTLS(network, address string) (net.Conn, error) {
 
 func (this *Vault) requestDocument() (*http.Response, error) {
 	httpClient := &http.Client{
-		Transport: &http.Transport{DialTLS: this.dialTLS}, // TODO: timeouts
+		Transport: &http.Transport{DialTLS: this.dialTLS},
+		Timeout: time.Duration(5 * time.Second),
 	}
+	retryClient := NewRetryClient(httpClient, 5, 5)
 	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.documentName, nil)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("X-Vault-Token", this.token)
-	response, err := httpClient.Do(request) // TODO: retry
+	response, err := retryClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
 
 	return response, nil
+}
+
+/////////////////////////////////////////
+
+type Client interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
+type RetryClient struct {
+	inner   Client
+	retries int
+	timeout int
+}
+
+func NewRetryClient(inner Client, retries, timeout int) *RetryClient {
+	return &RetryClient{
+		inner:   inner,
+		retries: retries,
+		timeout: timeout,
+	}
+}
+
+func (this *RetryClient) Do(request *http.Request) (response *http.Response, err error) {
+	for current := 0; current <= this.retries; current++ {
+		response, err = this.inner.Do(request)
+		if err == nil {
+			break
+		}
+	}
+	return response, err
 }
 
 /////////////////////////////////////////
