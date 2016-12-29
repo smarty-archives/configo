@@ -30,7 +30,7 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 
 	document, err := vault.getDocument()
 	if err != nil {
-		log.Panic("[ERROR] Vault document read error:", err) // TODO: only panic after N retries failed
+		log.Panic("[ERROR] Vault document read error:", err)
 	}
 
 	return FromJSONObject(document)
@@ -41,6 +41,7 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 func (this *Vault) getDocument() (map[string]interface{}, error) {
 	response, err := this.requestDocument()
 	if err != nil {
+		log.Println("[WARN] vault source document request error:", err)
 		return nil, err
 	}
 
@@ -56,9 +57,10 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 	var document vaultDocument
 	decoder := json.NewDecoder(responseBody)
 	if err := decoder.Decode(&document); err != nil {
+		log.Println("[WARN] vault source document decode error:", err)
 		return nil, err
 	}
-	return &document, nil // TODO: when retry is added, log any warnings that came back, even if they are not fatal
+	return &document, nil
 }
 
 /////////////////////////////////////////
