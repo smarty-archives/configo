@@ -75,6 +75,8 @@ func (this *Vault) requestDocument() (*http.Response, error) {
 		Timeout: time.Duration(5 * time.Second),
 	}
 	retryClient := NewRetryClient(httpClient, 5, 5)
+
+	// TODO: Need to make retry requests to each IP returned from this.address
 	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.documentName, nil)
 	if err != nil {
 		return nil, err
