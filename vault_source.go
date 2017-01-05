@@ -28,20 +28,23 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 	vault := newVault(token, address, documentName)
 	vault.token = token
 
-	document, err := vault.getDocument()
-	if err != nil {
-		log.Panic("[ERROR] Vault document read error:", err)
+	for _, ip := range vault.getIPList() {
+		document, err := vault.getDocument(ip)
+		if err != nil {
+			log.Println("[WARN] Vault document read error:", err)
+			continue
+		}
+		return FromJSONObject(document)
 	}
-
-	return FromJSONObject(document)
+	log.Panic("Unable to get document from Vault")
+	return nil
 }
 
 /////////////////////////////////////////
 
-func (this *Vault) getDocument() (map[string]interface{}, error) {
-	response, err := this.requestDocument()
+func (this *Vault) getDocument(ip string) (map[string]interface{}, error) {
+	response, err := this.requestDocument(ip)
 	if err != nil {
-		log.Println("[WARN] vault source document request error:", err)
 		return nil, err
 	}
 
@@ -69,15 +72,14 @@ func (this *Vault) dialTLS(network, address string) (net.Conn, error) {
 	return tls.Dial(network, address, &tls.Config{ServerName: this.address})
 }
 
-func (this *Vault) requestDocument() (*http.Response, error) {
+func (this *Vault) requestDocument(ip string) (*http.Response, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{DialTLS: this.dialTLS},
-		Timeout: time.Duration(5 * time.Second),
+		Timeout:   time.Duration(5 * time.Second),
 	}
-	retryClient := NewRetryClient(httpClient, 5, 5)
+	retryClient := NewRetryClient(httpClient, maxRetries, requestTimeout)
 
-	// TODO: Need to make retry requests to each IP returned from this.address
-	request, err := http.NewRequest("GET", "https://"+this.address+":8200/v1/"+this.documentName, nil)
+	request, err := http.NewRequest("GET", "https://"+ip+":8200/v1/"+this.documentName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +89,39 @@ func (this *Vault) requestDocument() (*http.Response, error) {
 		return nil, err
 	}
 
+	this.checkResponse(response)
 	return response, nil
+}
+
+func (this *Vault) getIPList() []string {
+	ips, err := net.LookupHost(this.address)
+	if err != nil {
+		log.Fatalf("[ERROR] %s", err)
+	}
+	return ips
+}
+
+func (this *Vault) checkResponse(response *http.Response) {
+	if response != nil {
+		switch response.StatusCode {
+		case 200:
+			log.Println("[INFO] Success, data returned")
+		case 204:
+			log.Println("[INFO] Success, no data returned")
+		case 400:
+			log.Println("[INFO] Invalid request, missing or invalid data")
+		case 403:
+			log.Println("[INFO] Forbidden. Credentials are wrong or you do not have permission")
+		case 404:
+			log.Println("[INFO] Invalid path. Path may be invalid or you do not have permission to view the path")
+		case 429:
+			log.Println("[INFO] Rate limite exceeded")
+		case 500:
+			log.Println("[INFO] Internal server error")
+		case 503:
+			log.Println("[INFO] Vault is down for maintenance or sealed")
+		}
+	}
 }
 
 /////////////////////////////////////////
@@ -151,3 +185,10 @@ type vaultAuthentication struct {
 	LeaseDuration int  `json:"lease_duration"`
 	Renewable     bool `json:"renewable"`
 }
+
+/////////////////////////////////////////
+
+const (
+	maxRetries     = 2
+	requestTimeout = 2
+)
