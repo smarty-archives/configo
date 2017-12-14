@@ -20,7 +20,7 @@ type Reader struct {
 // NewReader initializes a new reader using the provided sources. It calls each
 // non-nil source's Initialize() method.
 func NewReader(sources ...Source) *Reader {
-	filtered := []Source{}
+	var filtered []Source
 
 	for _, source := range sources {
 		if source == nil {
