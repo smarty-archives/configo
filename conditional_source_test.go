@@ -16,10 +16,10 @@ type ConditionalSourceFixture struct {
 
 	source *ConditionalSource
 	active bool
+	pairs  []DefaultPair
 }
 
 func (this *ConditionalSourceFixture) Setup() {
-	this.source = NewConditionalSource(func() bool { return this.active })
 	this.active = true
 }
 
@@ -42,10 +42,12 @@ func (this *ConditionalSourceFixture) TestFalseConditionReportsNoValues() {
 }
 
 func (this *ConditionalSourceFixture) addValues(values ...interface{}) {
-	this.source.Add("key", values...)
+	this.pairs = append(this.pairs, Default("key", values...))
 }
 
 func (this *ConditionalSourceFixture) assertValues(expected []string) {
+	this.source = NewConditionalSource(func() bool { return this.active }, this.pairs...)
+
 	values, err := this.source.Strings("key")
 
 	this.So(err, should.BeNil)
@@ -53,6 +55,8 @@ func (this *ConditionalSourceFixture) assertValues(expected []string) {
 
 }
 func (this *ConditionalSourceFixture) assertError(expected error) {
+	this.source = NewConditionalSource(func() bool { return this.active }, this.pairs...)
+
 	values, err := this.source.Strings("key")
 
 	this.So(err, should.Equal, expected)

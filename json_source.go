@@ -76,7 +76,7 @@ func (this *JSONSource) Strings(key string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
 
-func toStrings(value interface{}) []string {
+func toStrings(value interface{}) (values []string) {
 	switch typed := value.(type) {
 	case string:
 		return []string{typed}
@@ -85,7 +85,6 @@ func toStrings(value interface{}) []string {
 	case bool:
 		return []string{strconv.FormatBool(typed)}
 	case []interface{}:
-		values := []string{}
 		for _, item := range typed {
 			values = append(values, convertToString(item))
 		}

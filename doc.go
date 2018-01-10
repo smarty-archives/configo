@@ -6,7 +6,7 @@
 //
 //     - JSONSource (key/value pairs in JSON content)
 //     - EnvironmentSource (key/value pairs from the environment)
-//     - CommandLineSource (key/value pairs via command line flags)
+//     - CLISource (key/value pairs via command line flags)
 //     - DefaultSource (key/value pairs manually configured by the application)
 //     - ConditionalSource (filters key/value retrieval based on a condition)
 //
@@ -15,8 +15,8 @@
 //
 //     - FromDevelopmentOnlyDefaults()
 //     - FromRequiredInProductionJSONFile()
-//     - NewDefaultCommandLineConfigFileSource()
-//     - FromCommandLineConfigFileSource(path string)
+//     - FromDefaultCLIConfigFileSource()
+//     - FromCLIConfigFileSource(path string)
 //     - etc...
 //
 // Any of these sources may be provided to a Reader which is then used to
@@ -55,9 +55,11 @@
 // Here's a full example:
 //
 //     reader := configo.NewReader(
-//         FromDefaultCommandLineConfigFileSource(),
-//         FromCommandLineFlags().Register("s3-storage-address", "The address of the s3 bucket"),
-//         FromOptionalJSONFile("config-prod.json"),
+//         configo.FromDefaultCLIConfigFileSource(),
+//         configo.FromCLI(
+//             configo.Flag("s3-storage-address", "The address of the s3 bucket"),
+//         ),
+//         configo.FromOptionalJSONFile("config-prod.json"),
 //     )
 //     value := reader.URL("s3-storage-address")
 package configo

@@ -20,8 +20,15 @@ type Reader struct {
 // NewReader initializes a new reader using the provided sources. It calls each
 // non-nil source's Initialize() method.
 func NewReader(sources ...Source) *Reader {
-	var filtered []Source
-
+	return &Reader{
+		sources: initialize(sources),
+		aliases: make(map[string][]string),
+		fatal: func(key string, err error) {
+			log.Fatalf("[%s] %s\n", key, err)
+		},
+	}
+}
+func initialize(sources []Source) (filtered []Source) {
 	for _, source := range sources {
 		if source == nil {
 			continue
@@ -35,20 +42,12 @@ func NewReader(sources ...Source) *Reader {
 		source.Initialize()
 		filtered = append(filtered, source)
 	}
-
-	return &Reader{
-		sources: filtered,
-		aliases: make(map[string][]string),
-		fatal: func(key string, err error) {
-			log.Fatalf("[%s] %s\n", key, err)
-		},
-	}
+	return filtered
 }
 
-func (this *Reader) RegisterAlias(key, alias string) *Reader {
+func (this *Reader) RegisterAlias(key, alias string) {
 	this.aliases[alias] = append(this.aliases[alias], key)
 	this.aliases[key] = append(this.aliases[key], alias)
-	return this
 }
 
 // Strings returns all values associated with the given key or nil

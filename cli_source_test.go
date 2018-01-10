@@ -9,23 +9,22 @@ import (
 	"github.com/smartystreets/gunit"
 )
 
-func TestCommandLineSourceFixture(t *testing.T) {
-	gunit.Run(new(CommandLineSourceFixture), t)
+func TestCLISourceFixture(t *testing.T) {
+	gunit.Run(new(CLISourceFixture), t)
 }
 
-type CommandLineSourceFixture struct {
+type CLISourceFixture struct {
 	*gunit.Fixture
-	source *CommandLineSource
+	source *CLISource
 	output *bytes.Buffer
 }
 
 var commandLineValue = "value from command line"
-var noCommandLineValue = ""
 
-func (this *CommandLineSourceFixture) TestMatchingValueFound() {
+func (this *CLISourceFixture) TestMatchingValueFound() {
 	this.Println(`Simulates at the command line: ./app -flagName="value from command line"`)
 
-	this.source = FromCommandLineFlags().Register("flagName", "This is a cool flag")
+	this.source = FromCLI(Flag("flagName", "This is a cool flag"))
 	this.source.source = []string{"./app", fmt.Sprintf("-flagName=%s", commandLineValue)}
 	this.source.Initialize()
 
@@ -35,10 +34,10 @@ func (this *CommandLineSourceFixture) TestMatchingValueFound() {
 	this.So(err, should.BeNil)
 }
 
-func (this *CommandLineSourceFixture) TestFlagNotPassed__NotFound() {
+func (this *CLISourceFixture) TestFlagNotPassed__NotFound() {
 	this.Println(`Simulates no command line flag passed.`)
 
-	this.source = FromCommandLineFlags().Register("flagName", "This is a cool flag")
+	this.source = FromCLI(Flag("flagName", "This is a cool flag"))
 	this.source.source = []string{"./app"}
 	this.source.Initialize()
 
@@ -49,10 +48,10 @@ func (this *CommandLineSourceFixture) TestFlagNotPassed__NotFound() {
 	this.So(err, should.Equal, KeyNotFoundError)
 }
 
-func (this *CommandLineSourceFixture) TestFlagNotDefined__NoValuesReturned() {
+func (this *CLISourceFixture) TestFlagNotDefined__NoValuesReturned() {
 	this.Println(`Simulates requesting the value of an undefined flag`)
 
-	this.source = FromCommandLineFlags().Register("flagName", "This is a cool flag")
+	this.source = FromCLI(Flag("flagName", "This is a cool flag"))
 	this.source.source = []string{"./app"}
 	this.source.Initialize()
 
@@ -63,13 +62,14 @@ func (this *CommandLineSourceFixture) TestFlagNotDefined__NoValuesReturned() {
 	this.So(err, should.Equal, KeyNotFoundError)
 }
 
-func (this *CommandLineSourceFixture) TestBooleanFlagDefined() {
+func (this *CLISourceFixture) TestBooleanFlagDefined() {
 	this.Println(`Simulates requesting the value of a boolean flag`)
-	this.source = FromCommandLineFlags().
-		RegisterBool("flagname1", "This is cool").
-		RegisterBool("flagname2", "This is cooler").
-		RegisterBool("flagname3", "This is coolest").
-		RegisterBool("flagname4", "This is stellar")
+	this.source = FromCLI(
+		BoolFlag("flagname1", "This is cool"),
+		BoolFlag("flagname2", "This is cooler"),
+		BoolFlag("flagname3", "This is coolest"),
+		BoolFlag("flagname4", "This is stellar"),
+	)
 	this.source.source = []string{"./app", "-flagname1", "-flagname2=true", "-flagname3=false"}
 	this.source.Initialize()
 
@@ -94,14 +94,15 @@ func (this *CommandLineSourceFixture) TestBooleanFlagDefined() {
 	this.So(err, should.Equal, KeyNotFoundError)
 }
 
-func (this *CommandLineSourceFixture) TestUsageMessage() {
-	this.source = FromCommandLineFlags().
-		Register("something", "yeah").
-		Usage("This is some helpful text").
-		ContinueOnError()
-	this.source.source = []string{"./app", "-help", "-something"}
+func (this *CLISourceFixture) TestUsageMessage() {
 	buffer := new(bytes.Buffer)
-	this.source.SetOutput(buffer)
+	this.source = FromCLI(
+		Flag("something", "yeah"),
+		Usage("This is some helpful text"),
+		ContinueOnError(),
+		SetOutput(buffer),
+	)
+	this.source.source = []string{"./app", "-help", "-something"}
 
 	this.source.Initialize()
 

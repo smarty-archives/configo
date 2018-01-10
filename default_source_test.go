@@ -17,10 +17,7 @@ type DefaultSourceFixture struct {
 	*gunit.Fixture
 
 	source *DefaultSource
-}
-
-func (this *DefaultSourceFixture) Setup() {
-	this.source = NewDefaultSource()
+	pairs  []DefaultPair
 }
 
 func (this *DefaultSourceFixture) TestEmptyKeyReportsNoValues() {
@@ -101,10 +98,12 @@ func (this *DefaultSourceFixture) TestAddingTimeTypesRetrievesAll() {
 }
 
 func (this *DefaultSourceFixture) addValues(values ...interface{}) {
-	this.source.Add("key", values...)
+	this.pairs = append(this.pairs, Default("key", values...))
 }
 
 func (this *DefaultSourceFixture) assertValues(expected []string) {
+	this.source = NewDefaultSource(this.pairs...)
+
 	values, err := this.source.Strings("key")
 
 	this.So(err, should.BeNil)
@@ -112,6 +111,8 @@ func (this *DefaultSourceFixture) assertValues(expected []string) {
 
 }
 func (this *DefaultSourceFixture) assertError(expected error) {
+	this.source = NewDefaultSource(this.pairs...)
+
 	values, err := this.source.Strings("key")
 
 	this.So(err, should.Equal, expected)
