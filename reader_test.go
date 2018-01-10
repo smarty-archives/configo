@@ -57,7 +57,7 @@ func (this *ReaderTestFixture) TestNilSourcesAreSkipped() {
 	source1 := &FakeSource{key: "1"}
 	source2 := &FakeSource{key: "2"}
 	source3 := NoopSource{}
-	var nilSource *CommandLineSource
+	var nilSource *CLISource
 
 	this.So(func() { this.reader = NewReader(source1, nilSource, nil, nil, nil, source2, source3) }, should.NotPanic)
 	this.So(this.reader.sources, should.Resemble, []Source{source1, source2, source3})
@@ -869,14 +869,13 @@ func (this *ReaderTestFixture) TestValuesThatReferToEnvironmentVariablesArePasse
 //////////////////////////////////////////////////////////////
 
 func (this *ReaderTestFixture) TestAliasesResolveCanonicalKeyValues() {
-	reader := this.reader.
-		RegisterAlias("string", "string2").
-		RegisterAlias("string", "string3")
+	this.reader.RegisterAlias("string", "string2")
+	this.reader.RegisterAlias("string", "string3")
 
 	values2, err2 := this.reader.StringsError("string2")
 	values3, err3 := this.reader.StringsError("string3")
 
-	this.So(reader, should.Equal, this.reader)
+	this.So(this.reader, should.Equal, this.reader)
 
 	this.So(values2, should.Resemble, []string{"asdf"})
 	this.So(err2, should.BeNil)
@@ -890,8 +889,8 @@ func (this *ReaderTestFixture) TestAliasesResolveCanonicalKeyValues() {
 func (this *ReaderTestFixture) TestCanonicalKeyResolvesAliasKeyValues() {
 	this.sources = []Source{&FakeSource{key: "alias", value: []string{"alias-value"}}}
 
-	this.reader = NewReader(this.sources...).
-		RegisterAlias("canonical", "alias")
+	this.reader = NewReader(this.sources...)
+	this.reader.RegisterAlias("canonical", "alias")
 
 	values, err := this.reader.StringsError("canonical")
 

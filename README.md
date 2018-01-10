@@ -10,17 +10,17 @@ Sources provided in this package:
 
     - JSONSource (key/value pairs in JSON content)
     - EnvironmentSource (key/value pairs from the environment)
-    - CommandLineSource (key/value pairs via command line flags)
+    - CLISource (key/value pairs via command line flags)
     - DefaultSource (key/value pairs manually configured by the application)
-    - ConditionalSource (filters key/value retreival based on a condition)
+    - ConditionalSource (filters key/value retrieval based on a condition)
 
 These basic sources have been composed into additional sources, made available
 via the following constructor methods:
 
     - FromDevelopmentOnlyDefaults()
     - FromRequiredInProductionJSONFile()
-    - NewDefaultCommandLineConfigFileSource()
-    - FromCommandLineConfigFileSource(path string)
+    - FromDefaultCLIConfigFileSource()
+    - FromCLIConfigFileSource(path string)
     - etc...
 
 Any of these sources may be provided to a Reader which is then used to retrieve
@@ -58,9 +58,11 @@ functions (but similar methods are implemented for each returned type):
 Here's a full example:
 
     reader := configo.NewReader(
-        FromDefaultCommandLineConfigFileSource(),
-        FromCommandLineFlags().Register("s3-storage-address", "The address of the s3 bucket"),
-        FromOptionalJSONFile("config-prod.json"),
+        configo.FromDefaultCLIConfigFileSource(),
+        configo.FromCLI(
+            configo.Flag("s3-storage-address", "The address of the s3 bucket"),
+        ),
+        configo.FromOptionalJSONFile("config-prod.json"),
     )
     value := reader.URL("s3-storage-address")
 
@@ -82,117 +84,147 @@ var (
 )
 ```
 
-#### type CommandLineConfigFileSource
+#### type CLI
 
 ```go
-type CommandLineConfigFileSource struct {
-}
+type CLI func(*CLISource)
 ```
 
-CommandLineConfigFileSource registers a command line flag for specifying an
-optional json config file, beyond any other config file definitions that follow
-this one. It is intened to be used to provide an orveride to the regularly used
-config file(s), like when you might be debugging in production (admit it, you've
-been there too).
 
-#### func  FromCommandLineConfigFileSource
+#### func  BoolFlag
 
 ```go
-func FromCommandLineConfigFileSource(flagName string) *CommandLineConfigFileSource
+func BoolFlag(name, description string) CLI
 ```
-FromDefaultCommandLineConfigFileSource registers a command line flag with the
-given flagName for specifying an alternate JSON config file.
+BoolFlag registers a boolean flag and corresponding usage description with the
+CLISource. The advantage of this method over Flag for boolean values is that the
+user can merely supply the flag without a value to set the boolean flag to true.
+This doesn't work with Flag.
 
-#### func  FromDefaultCommandLineConfigFileSource
-
-```go
-func FromDefaultCommandLineConfigFileSource() *CommandLineConfigFileSource
-```
-FromDefaultCommandLineConfigFileSource registers a command line flag called
-"config" for specifying an alternate JSON config file.
-
-#### func (*CommandLineConfigFileSource) Initialize
+#### func  ContinueOnError
 
 ```go
-func (this *CommandLineConfigFileSource) Initialize()
-```
-Initialize parses the command line flag and reads the altnerate JSON source.
-
-#### func (*CommandLineConfigFileSource) Strings
-
-```go
-func (this *CommandLineConfigFileSource) Strings(key string) ([]string, error)
-```
-Strings reads the key from the JSON source if it was successfully loaded during
-Initialize.
-
-#### type CommandLineSource
-
-```go
-type CommandLineSource struct {
-}
-```
-
-CommandLineSource allows for registration of command line flags and stores their
-actual values, if supplied on the command line. It implements the Source
-interface so it can be used by a Reader.
-
-#### func  FromCommandLineFlags
-
-```go
-func FromCommandLineFlags() *CommandLineSource
-```
-FromCommandLineFlags creates a new CommandLineSource for use in a Reader. It
-uses a *flag.FlagSet internally to register and parse the flags. Be default the
-flag.ErrorHandling mode is set to flag.ExitOnError
-
-#### func (*CommandLineSource) ContinueOnError
-
-```go
-func (this *CommandLineSource) ContinueOnError() *CommandLineSource
+func ContinueOnError() CLI
 ```
 ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
 to flag.ContinueOnError. Must be called before Initialize is called.
 
-#### func (*CommandLineSource) Initialize
+#### func  Flag
 
 ```go
-func (this *CommandLineSource) Initialize()
+func Flag(name, description string) CLI
 ```
-Parses the internal *flag.FlagSet. Call only after making all Register calls.
+Flag registers a flag and corresponding usage description with the CLISource.
 
-#### func (*CommandLineSource) PanicOnError
+#### func  PanicOnError
 
 ```go
-func (this *CommandLineSource) PanicOnError() *CommandLineSource
+func PanicOnError() CLI
 ```
-ContinueOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet
-to flag.PanicOnError. Must be called before Initialize is called.
+PanicOnError sets the flag.ErrorHandling mode of the internal *flag.FlagSet to
+flag.PanicOnError. Must be called before Initialize is called.
 
-#### func (*CommandLineSource) Register
+#### func  SetOutput
 
 ```go
-func (this *CommandLineSource) Register(name, description string) *CommandLineSource
+func SetOutput(writer io.Writer) CLI
 ```
-Register adds flags and corresponding usage descriptions to the
-CommandLineSource.
+SetOutput allows printing to an io.Writer other than os.Stderr, the default.
 
-#### func (*CommandLineSource) RegisterBool
+#### func  Usage
 
 ```go
-func (this *CommandLineSource) RegisterBool(name, description string) *CommandLineSource
+func Usage(message string) CLI
 ```
-RegisterBool adds boolean flags and corresponding usage descriptions to the
-CommandLineSource. The advantage of this method over Register for boolean values
-is that the user can merely supply the flag without a value to set the boolean
-flag to true. This doesn't work with Register.
+Usage appends a custom message to the end of what is normally printed by
+flag.PrintDefaults().
 
-#### func (*CommandLineSource) Strings
+#### type CLIConfigFileSource
 
 ```go
-func (this *CommandLineSource) Strings(key string) ([]string, error)
+type CLIConfigFileSource struct {
+}
+```
+
+CLIConfigFileSource registers a command line flag for specifying an optional
+json config file, beyond any other config file definitions that follow this one.
+It is intended to be used to provide an override to the regularly used config
+file(s), like when you might be debugging in production (admit it, you've been
+there too).
+
+#### func  FromCLIConfigFileSource
+
+```go
+func FromCLIConfigFileSource(flagName string) *CLIConfigFileSource
+```
+FromDefaultCLIConfigFileSource registers a command line flag with the given
+flagName for specifying an alternate JSON config file.
+
+#### func  FromDefaultCLIConfigFileSource
+
+```go
+func FromDefaultCLIConfigFileSource() *CLIConfigFileSource
+```
+FromDefaultCLIConfigFileSource registers a command line flag called "config" for
+specifying an alternate JSON config file.
+
+#### func (*CLIConfigFileSource) Initialize
+
+```go
+func (this *CLIConfigFileSource) Initialize()
+```
+Initialize parses the command line flag and reads the altnerate JSON source.
+
+#### func (*CLIConfigFileSource) Strings
+
+```go
+func (this *CLIConfigFileSource) Strings(key string) ([]string, error)
+```
+Strings reads the key from the JSON source if it was successfully loaded during
+Initialize.
+
+#### type CLISource
+
+```go
+type CLISource struct {
+}
+```
+
+CLISource allows for registration of command line flags and stores their actual
+values, if supplied on the command line. It implements the Source interface so
+it can be used by a Reader.
+
+#### func  FromCLI
+
+```go
+func FromCLI(options ...CLI) *CLISource
+```
+FromCLI creates a new CLISource for use in a Reader. It uses a *flag.FlagSet
+internally to register and parse the flags. Be default the flag.ErrorHandling
+mode is set to flag.ExitOnError
+
+#### func (*CLISource) Initialize
+
+```go
+func (this *CLISource) Initialize()
+```
+Parses the internal *flag.FlagSet. Call only after making all Flag calls.
+
+#### func (*CLISource) Strings
+
+```go
+func (this *CLISource) Strings(key string) ([]string, error)
 ```
 Strings returns the matching command line flag value, or KeyNotFound.
+
+#### type Client
+
+```go
+type Client interface {
+	Do(*http.Request) (*http.Response, error)
+}
+```
+
 
 #### type ConditionalSource
 
@@ -206,7 +238,7 @@ ConditionalSource resolves values based on a condition supplied as a callback.
 #### func  FromDevelopmentOnlyDefaults
 
 ```go
-func FromDevelopmentOnlyDefaults() *ConditionalSource
+func FromDevelopmentOnlyDefaults(pairs ...DefaultPair) *ConditionalSource
 ```
 A conditional source which determines if we are running in a development
 environment
@@ -214,18 +246,10 @@ environment
 #### func  NewConditionalSource
 
 ```go
-func NewConditionalSource(condition func() bool) *ConditionalSource
+func NewConditionalSource(condition func() bool, pairs ...DefaultPair) *ConditionalSource
 ```
 NewConditionalSource creates a conditional source with the provided condition
-callback.
-
-#### func (*ConditionalSource) Add
-
-```go
-func (this *ConditionalSource) Add(key string, values ...interface{}) *ConditionalSource
-```
-Add registers a key/values pairing for retrieval, so long as the supplied
-condition is true.
+callback and key/value pairs.
 
 #### func (*ConditionalSource) Initialize
 
@@ -241,6 +265,21 @@ func (this *ConditionalSource) Strings(key string) ([]string, error)
 Strings returns the value of the corresponding key, or KeyNotFoundError if the
 condition is false.
 
+#### type DefaultPair
+
+```go
+type DefaultPair func(*DefaultSource)
+```
+
+
+#### func  Default
+
+```go
+func Default(key string, values ...interface{}) DefaultPair
+```
+Default registers the provided values (which will be converted to strings) to
+the given key. It does NOT overwrite existing values, it appends.
+
 #### type DefaultSource
 
 ```go
@@ -254,17 +293,9 @@ types.
 #### func  NewDefaultSource
 
 ```go
-func NewDefaultSource() *DefaultSource
+func NewDefaultSource(pairs ...DefaultPair) *DefaultSource
 ```
 NewDefaultSource initializes a new DefaultSource.
-
-#### func (*DefaultSource) Add
-
-```go
-func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource
-```
-Adds the provided values (which will be converted to strings) to the given key.
-It does NOT overwrite existing values, it adds.
 
 #### func (*DefaultSource) Initialize
 
@@ -344,6 +375,14 @@ func FromConditionalJSONFile(filename string, condition func() bool) *JSONSource
 If the provided condition returns true, the specified filename is required and
 must be found; otherwise loading the file is optional.
 
+#### func  FromConfigurableJSONFile
+
+```go
+func FromConfigurableJSONFile() *JSONSource
+```
+FromConfigurableJSONFile allows the user to configure the config file path via
+the -config command line flag.
+
 #### func  FromJSONContent
 
 ```go
@@ -360,6 +399,12 @@ func FromJSONFile(filename string) *JSONSource
 FromJSONFile reads and unmarshals the file at the provided path into a
 JSONSource. Any resulting error results in a panic.
 
+#### func  FromJSONObject
+
+```go
+func FromJSONObject(values map[string]interface{}) *JSONSource
+```
+
 #### func  FromOptionalJSONFile
 
 ```go
@@ -367,6 +412,12 @@ func FromOptionalJSONFile(filename string) *JSONSource
 ```
 FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is
 not found.
+
+#### func  FromVaultDocument
+
+```go
+func FromVaultDocument(token, address, documentName string) *JSONSource
+```
 
 #### func (*JSONSource) Initialize
 
@@ -573,7 +624,7 @@ the key does not exist or the values could not be parsed as integers.
 #### func (*Reader) RegisterAlias
 
 ```go
-func (this *Reader) RegisterAlias(key, alias string) *Reader
+func (this *Reader) RegisterAlias(key, alias string)
 ```
 
 #### func (*Reader) String
@@ -785,6 +836,26 @@ func (this *Reader) URLsPanic(key string) []url.URL
 URLsPanic returns all URL values associated with the given key or panics if the
 key does not exist or the values could not be parsed as URLs.
 
+#### type RetryClient
+
+```go
+type RetryClient struct {
+}
+```
+
+
+#### func  NewRetryClient
+
+```go
+func NewRetryClient(inner Client, retries, timeout int) *RetryClient
+```
+
+#### func (*RetryClient) Do
+
+```go
+func (this *RetryClient) Do(request *http.Request) (response *http.Response, err error)
+```
+
 #### type Source
 
 ```go
@@ -804,3 +875,10 @@ func FromRequiredInProductionJSONFile(filename string) Source
 ```
 If we are running in a production (non-development) environment the specified
 JSON filename is required; otherwise it's optional.
+
+#### type Vault
+
+```go
+type Vault struct {
+}
+```

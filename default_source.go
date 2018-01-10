@@ -12,23 +12,28 @@ type DefaultSource struct {
 }
 
 // NewDefaultSource initializes a new DefaultSource.
-func NewDefaultSource() *DefaultSource {
-	return &DefaultSource{
-		settings: make(map[string][]string),
+func NewDefaultSource(pairs ...DefaultPair) *DefaultSource {
+	source := &DefaultSource{settings: make(map[string][]string)}
+	for _, config := range pairs {
+		config(source)
 	}
+	return source
 }
 
-// Adds the provided values (which will be converted to strings) to the given key.
-// It does NOT overwrite existing values, it adds.
-func (this *DefaultSource) Add(key string, values ...interface{}) *DefaultSource {
-	contents := this.settings[key]
+type DefaultPair func(*DefaultSource)
 
-	for _, value := range values {
-		contents = append(contents, convertToString(value))
+// Default registers the provided values (which will be converted to strings) to the given key.
+// It does NOT overwrite existing values, it appends.
+func Default(key string, values ...interface{}) DefaultPair {
+	return func(source *DefaultSource) {
+		contents := source.settings[key]
+
+		for _, value := range values {
+			contents = append(contents, convertToString(value))
+		}
+
+		source.settings[key] = contents
 	}
-
-	this.settings[key] = contents
-	return this
 }
 
 func convertToString(value interface{}) string {

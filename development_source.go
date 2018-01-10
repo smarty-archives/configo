@@ -21,8 +21,8 @@ var productionEnvironment = func() bool {
 
 // A conditional source which determines if we are running
 // in a development environment
-func FromDevelopmentOnlyDefaults() *ConditionalSource {
-	return NewConditionalSource(developmentEnvironment)
+func FromDevelopmentOnlyDefaults(pairs ...DefaultPair) *ConditionalSource {
+	return NewConditionalSource(developmentEnvironment, pairs...)
 }
 
 // If we are running in a production (non-development) environment
