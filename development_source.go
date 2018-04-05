@@ -11,7 +11,6 @@ var developmentEnvironment = func() bool {
 	vagrant, _ := user.Lookup("vagrant")
 	return runtime.GOOS == "darwin" ||
 		hostname == "vagrant" ||
-		hostname == "ubuntu1404" ||
 		vagrant != nil
 }
 
