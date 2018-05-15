@@ -429,8 +429,16 @@ func FromVaultDocument(token, address, documentName string) *JSONSource
 ```
 
 VaultSource Example
+```bash
+# Vault server CLI reading from document at secret/test
+$ vault read secret/test
+Key                 Value
+---                 -----
+testkey             testvalue
+```
+
 ```go
-// VaultSource reading from document secret/test
+// VaultSource reading from document at secret/test
 reader := configo.NewReader(
         configo.FromVaultDocument("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "127.0.0.1", "secret/test"),
 )
