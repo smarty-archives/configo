@@ -26,7 +26,6 @@ func newVault(token, address, documentName string) *VaultSource {
 
 func FromVaultDocument(token, address, documentName string) *JSONSource {
 	vault := newVault(token, address, documentName)
-	vault.token = token
 
 	for _, ip := range vault.getIPList() {
 		document, err := vault.getDocument(ip)
