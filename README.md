@@ -413,11 +413,32 @@ func FromOptionalJSONFile(filename string) *JSONSource
 FromOptionalJSONFile is like FromJSONFile but it does not panic if the file is
 not found.
 
+---
+
+#### type VaultSource
+
+```go
+type VaultSource struct {
+}
+```
+
 #### func  FromVaultDocument
 
 ```go
 func FromVaultDocument(token, address, documentName string) *JSONSource
 ```
+
+VaultSource Example
+```go
+// VaultSource reading from document secret/test
+reader := configo.NewReader(
+        configo.FromVaultDocument("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "127.0.0.1", "secret/test"),
+)
+log.Println(reader.String("testkey"))
+// result: testvalue
+```
+
+---
 
 #### func (*JSONSource) Initialize
 
@@ -875,10 +896,3 @@ func FromRequiredInProductionJSONFile(filename string) Source
 ```
 If we are running in a production (non-development) environment the specified
 JSON filename is required; otherwise it's optional.
-
-#### type VaultSource
-
-```go
-type VaultSource struct {
-}
-```
