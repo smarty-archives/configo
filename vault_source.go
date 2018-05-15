@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-type Vault struct {
+type VaultSource struct {
 	token        string
 	address      string
 	documentName string
 }
 
-func newVault(token, address, documentName string) *Vault {
-	return &Vault{
+func newVault(token, address, documentName string) *VaultSource {
+	return &VaultSource{
 		token:        token,
 		address:      address,
 		documentName: documentName,
@@ -40,9 +40,11 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 	return nil
 }
 
+//func (this *VaultSource) Initialize() {}
+
 /////////////////////////////////////////
 
-func (this *Vault) getDocument(ip string) (map[string]interface{}, error) {
+func (this *VaultSource) getDocument(ip string) (map[string]interface{}, error) {
 	response, err := this.requestDocument(ip)
 	if err != nil {
 		return nil, err
@@ -68,11 +70,11 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 
 /////////////////////////////////////////
 
-func (this *Vault) dialTLS(network, address string) (net.Conn, error) {
+func (this *VaultSource) dialTLS(network, address string) (net.Conn, error) {
 	return tls.Dial(network, address, &tls.Config{ServerName: this.address})
 }
 
-func (this *Vault) requestDocument(ip string) (*http.Response, error) {
+func (this *VaultSource) requestDocument(ip string) (*http.Response, error) {
 	httpClient := &http.Client{
 		Transport: &http.Transport{DialTLS: this.dialTLS},
 		Timeout:   time.Duration(5 * time.Second),
@@ -93,7 +95,7 @@ func (this *Vault) requestDocument(ip string) (*http.Response, error) {
 	return response, nil
 }
 
-func (this *Vault) getIPList() []string {
+func (this *VaultSource) getIPList() []string {
 	ips, err := net.LookupHost(this.address)
 	if err != nil {
 		log.Fatalf("[ERROR] %s", err)
@@ -101,7 +103,7 @@ func (this *Vault) getIPList() []string {
 	return ips
 }
 
-func (this *Vault) checkResponse(response *http.Response) {
+func (this *VaultSource) checkResponse(response *http.Response) {
 	if response != nil {
 		switch response.StatusCode {
 		case 200:
