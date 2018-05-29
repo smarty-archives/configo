@@ -94,12 +94,18 @@ func (this *VaultSource) requestDocument(ip string) (*http.Response, error) {
 	return response, nil
 }
 
-func (this *VaultSource) getIPList() []string {
-	ips, err := net.LookupHost(this.address)
-	if err != nil {
-		log.Fatalf("[ERROR] %s", err)
+func (this *VaultSource) getIPList() (ips []string) {
+	var err error
+	for i := 0; i < 3; i++ {
+		if ips, err = net.LookupHost(this.address); err == nil {
+			return ips
+		}
+		time.Sleep(100 * time.Millisecond)
+		log.Println("[WARN] DNS lookup error")
 	}
-	return ips
+
+	log.Fatalf("[ERROR] %s", err)
+	return
 }
 
 func (this *VaultSource) checkResponse(response *http.Response) {
