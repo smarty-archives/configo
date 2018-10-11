@@ -3,32 +3,39 @@ package configo
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"net/url"
+	"os"
+	"strings"
 	"time"
 )
 
 type VaultSource struct {
 	token        string
-	address      string
+	address      url.URL
 	documentName string
 }
 
 func newVault(token, address, documentName string) *VaultSource {
-	return &VaultSource{
-		token:        token,
-		address:      address,
+	ret := &VaultSource{
 		documentName: documentName,
 	}
+	ret.token = ret.checkToken(token)
+	ret.address = *ret.checkAddress(address)
+	return ret
 }
 
 func FromVaultDocument(token, address, documentName string) *JSONSource {
 	vault := newVault(token, address, documentName)
 
 	for _, ip := range vault.getIPList() {
-		document, err := vault.getDocument(ip)
+		addrCopy := vault.address
+		setURLHostPort(&addrCopy, ip, addrCopy.Port())
+		document, err := vault.getDocument(addrCopy)
 		if err != nil {
 			log.Println("[WARN] Vault document read error:", err)
 			continue
@@ -41,10 +48,62 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 
 //func (this *VaultSource) Initialize() {}
 
+// Work around url.URL's broken ports with ip6
+func setURLHostPort(u *url.URL, host, port string) {
+	if strings.Contains(host, ":") && host[0] != '[' { //ip6
+		host = "[" + host + "]"
+	}
+
+	u.Host = host + ":" + port
+}
+
 /////////////////////////////////////////
 
-func (this *VaultSource) getDocument(ip string) (map[string]interface{}, error) {
-	response, err := this.requestDocument(ip)
+func (this *VaultSource) checkAddress(address string) (ret *url.URL) {
+	if address == "" {
+		address = os.Getenv("VAULT_ADDR")
+	}
+
+	if address == "" {
+		log.Panic("No Vault address provided nor in environment VAULT_ADDR")
+	}
+
+	if ! strings.Contains(address, "//") {
+		address = "//" + address
+	}
+
+	var err error
+	if ret, err = url.Parse(address); err == nil {
+		if ret.Scheme != "http" {
+			ret.Scheme = "https"
+		}
+
+		if ret.Port() == "" {
+			setURLHostPort(ret, ret.Hostname(), "8200")
+		}
+
+		ret.User = nil
+	} else {
+		log.Panic("Unable to parse Vault URL " + address + ": " + err.Error())
+	}
+
+	return
+}
+
+func (this *VaultSource) checkToken(token string) string {
+	if token == "" {
+		token = os.Getenv("VAULT_TOKEN")
+	}
+
+	if token == "" {
+		log.Println("[WARN] No Vault token provided nor in environment VAULT_TOKEN")
+	}
+
+	return token
+}
+
+func (this *VaultSource) getDocument(addr url.URL) (map[string]interface{}, error) {
+	response, err := this.requestDocument(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +113,11 @@ func (this *VaultSource) getDocument(ip string) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	return document.Data, nil
+	if response.StatusCode >= 400 {
+		err = errors.New(response.Status)
+	}
+
+	return document.Data, err
 }
 
 func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
@@ -70,17 +133,25 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 /////////////////////////////////////////
 
 func (this *VaultSource) dialTLS(network, address string) (net.Conn, error) {
-	return tls.Dial(network, address, &tls.Config{ServerName: this.address})
+	return tls.Dial(network, address, &tls.Config{
+		ServerName: this.address.Hostname(),
+		InsecureSkipVerify: "" != os.Getenv("VAULT_SKIP_VERIFY"),
+	})
 }
 
-func (this *VaultSource) requestDocument(ip string) (*http.Response, error) {
+func (this *VaultSource) requestDocument(addr url.URL) (*http.Response, error) {
 	httpClient := &http.Client{
-		Transport: &http.Transport{DialTLS: this.dialTLS},
 		Timeout:   time.Duration(5 * time.Second),
 	}
+
+	if addr.Scheme == "https" {
+		httpClient.Transport = &http.Transport{DialTLS: this.dialTLS}
+	}
+
 	retryClient := NewRetryClient(httpClient, maxRetries, requestTimeout)
 
-	request, err := http.NewRequest("GET", "https://"+ip+":8200/v1/"+this.documentName, nil)
+	addr.Path = "/v1/" + strings.Trim(this.documentName, "/")
+	request, err := http.NewRequest("GET", addr.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +168,7 @@ func (this *VaultSource) requestDocument(ip string) (*http.Response, error) {
 func (this *VaultSource) getIPList() (ips []string) {
 	var err error
 	for i := 0; i < 3; i++ {
-		if ips, err = net.LookupHost(this.address); err == nil {
+		if ips, err = net.LookupHost(this.address.Hostname()); err == nil {
 			return ips
 		}
 		time.Sleep(100 * time.Millisecond)
