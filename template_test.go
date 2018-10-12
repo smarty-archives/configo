@@ -100,6 +100,14 @@ func (this *TemplateTestFixture) TestBadTemplateFunction() {
 }
 
 
+func (this *TemplateTestFixture) TestComplexTemplate() {
+	this.template.Content = `value: {{- $new_var := (or .no_such_string .url) }}{{ $new_var }}`
+	x, err := this.template.String()
+	this.So(err, should.BeEmpty)
+	this.So(x, should.Equal, "value:http://www.google.com")
+}
+
+
 func (this *TemplateTestFixture) TestSecretInvalid() {
 	this.template.Content = `MyEmail: "{{with secret "secret/operations/email"}}{{.string}}{{end}}"`
 	this.So(func() { this.template.String() }, should.Panic)

@@ -160,11 +160,7 @@ func (this *Template) walkNode(node parse.Node, found map[string]string) {
 	switch node := node.(type) {
 		// ActionNode holds an action (something bounded by delimiters; like FieldNodes)
 		case *parse.ActionNode:
-			for _, c := range node.Pipe.Cmds {
-				for _, a := range c.Args {
-					this.walkNode(a, found)
-				}
-			}
+			this.walkNode(node.Pipe, found)
 
 		// this is where our data is, we only need the first item in a chain
 		case *parse.FieldNode:
@@ -178,6 +174,13 @@ func (this *Template) walkNode(node parse.Node, found map[string]string) {
 		case *parse.ListNode:
 			for _, node := range node.Nodes {
 				this.walkNode(node, found)
+			}
+
+		case *parse.PipeNode:
+			for _,c := range node.Cmds {
+				for _, a := range c.Args {
+					this.walkNode(a, found)
+				}
 			}
 
 		case *parse.RangeNode:
