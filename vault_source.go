@@ -64,6 +64,8 @@ func (this *VaultSource) checkAddress(address string) (ret *url.URL) {
 		address = os.Getenv("VAULT_ADDR")
 	}
 
+	address = strings.TrimSpace(address)
+
 	if address == "" {
 		log.Panic("No Vault address provided nor in environment VAULT_ADDR")
 	}
@@ -94,6 +96,8 @@ func (this *VaultSource) checkToken(token string) string {
 	if token == "" {
 		token = os.Getenv("VAULT_TOKEN")
 	}
+
+	token = strings.TrimSpace(token)
 
 	if token == "" {
 		log.Println("[WARN] No Vault token provided nor in environment VAULT_TOKEN")
@@ -161,7 +165,7 @@ func (this *VaultSource) requestDocument(addr url.URL) (*http.Response, error) {
 		return nil, err
 	}
 
-	this.checkResponse(response)
+	this.checkResponse(response, request)
 	return response, nil
 }
 
@@ -179,7 +183,7 @@ func (this *VaultSource) getIPList() (ips []string) {
 	return
 }
 
-func (this *VaultSource) checkResponse(response *http.Response) {
+func (this *VaultSource) checkResponse(response *http.Response, request *http.Request) {
 	if response != nil {
 		switch response.StatusCode {
 		case 200:
@@ -187,13 +191,13 @@ func (this *VaultSource) checkResponse(response *http.Response) {
 		case 204:
 			log.Println("[INFO] Success, no data returned")
 		case 400:
-			log.Println("[INFO] Invalid request, missing or invalid data")
+			log.Println("[INFO] Invalid request, missing or invalid data:", request.URL.Path)
 		case 403:
-			log.Println("[INFO] Forbidden. Credentials are wrong or you do not have permission")
+			log.Println("[INFO] Forbidden. Credentials are wrong or you do not have permission:", request.URL.Path)
 		case 404:
-			log.Println("[INFO] Invalid path. Path may be invalid or you do not have permission to view the path")
+			log.Println("[INFO] Invalid path. Path may be invalid or you do not have permission to view the path:", request.URL.Path)
 		case 429:
-			log.Println("[INFO] Rate limite exceeded")
+			log.Println("[INFO] Rate limit exceeded")
 		case 500:
 			log.Println("[INFO] Internal server error")
 		case 503:
