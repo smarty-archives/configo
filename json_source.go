@@ -56,7 +56,7 @@ func FromOptionalJSONFile(filename string) *JSONSource {
 func FromJSONContent(raw []byte) *JSONSource {
 	values := make(map[string]interface{})
 	if err := json.Unmarshal(raw, &values); err != nil {
-		panic(err)
+		panic("json error: " + err.Error())
 	}
 
 	return FromJSONObject(values)
