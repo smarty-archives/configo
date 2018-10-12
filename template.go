@@ -23,7 +23,7 @@ type Template struct {
 }
 
 
-// NewTemplate initializes a template and reader new reader using the provided sources.
+// NewTemplate initializes a template and the provided sources.
 func NewTemplate(content string, sources ...Source) *Template {
 	return &Template{
 		Content: content,
@@ -32,8 +32,8 @@ func NewTemplate(content string, sources ...Source) *Template {
 }
 
 
-// FromDirectory reads the directory path provided.
-// If mustExist is true, and the path does not exist, a panic will result.
+// Parses the provided go json template, substituting data from provided sources, and returning it as a JSON source.
+// Panics if there is a template error.
 func FromTemplateJSON(template *Template) *JSONSource {
 	if data, err := template.Run(); err == nil {
 		return FromJSONContent(data)
@@ -120,9 +120,6 @@ func (this *Template) funcs() tt.FuncMap {
 	ret := sprig.TxtFuncMap()
 	ret["secret"] = this.funcSecret
 	return ret
-	//return tt.FuncMap{
-	//	"secret": this.funcSecret,
-	//}
 }
 
 
@@ -154,7 +151,7 @@ func (this *Template) funcSecret(path string) (ret map[string]interface{}, err e
 }
 
 
-// Walk through the parsed template nodes, adding referenced fields to map.
+// Recurse through the parsed template's nodes, adding referenced data fields to the found map.
 // The walking structure is similar to text/template/exec.go:walk()
 func (this *Template) walkNode(node parse.Node, found map[string]string) {
 	switch node := node.(type) {
@@ -176,6 +173,7 @@ func (this *Template) walkNode(node parse.Node, found map[string]string) {
 				this.walkNode(node, found)
 			}
 
+		// list of command arguments, including parenthesis
 		case *parse.PipeNode:
 			for _,c := range node.Cmds {
 				for _, a := range c.Args {
