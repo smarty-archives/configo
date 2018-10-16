@@ -2,6 +2,7 @@ package configo
 
 import (
 	"io/ioutil"
+	"log"
 	"strings"
 )
 
@@ -51,13 +52,16 @@ func (this *DirectorySource) Initialize() {
 	this.files = make(map[string]string, 32)
 
 	if files, err := ioutil.ReadDir(this.path); err != nil {
+		log.Printf("[INFO] directory not read [%s]: %s\n", this.path, err)
 		if this.mustExist {
-			panic(err)
+			panic("directory must exist")
 		}
 	} else {
 		for _, file := range files {
-			key := sanitizeKey(strings.ToLower(file.Name()))
-			this.files[key] = file.Name()
+			if ! file.IsDir() {
+				key := sanitizeKey(strings.ToLower(file.Name()))
+				this.files[key] = file.Name()
+			}
 		}
 	}
 }
