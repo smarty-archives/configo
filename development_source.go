@@ -11,9 +11,9 @@ func FromDevelopmentOnlyDefaults(pairs ...DefaultPair) *ConditionalSource {
 	return NewConditionalSource(developmentEnvironment, pairs...)
 }
 func developmentEnvironment() bool {
-	return runtime.GOOS == "darwin" || hostname() == "vagrant" || hasVagrantUser()
+	return runtime.GOOS == "darwin" || Hostname() == "vagrant" || hasVagrantUser()
 }
-func hostname() string {
+func Hostname() string {
 	name, _ := os.Hostname()
 	return name
 }
