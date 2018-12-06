@@ -3,6 +3,7 @@ package configo
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"strings"
 	tt "text/template"
 	"text/template/parse"
@@ -10,7 +11,6 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/iancoleman/strcase"
 )
-
 
 // Template retrieves values from the provided sources, inserting data
 // from the sources into the Template.
@@ -21,7 +21,6 @@ type Template struct {
 	vaultAddr  string
 	vaultToken string
 }
-
 
 // NewTemplate initializes a template and the provided sources.
 func NewTemplate(content string, sources ...Source) *Template {
@@ -41,7 +40,6 @@ func FromTemplateJSON(template *Template) *JSONSource {
 		panic(err)
 	}
 }
-
 
 // Execute the template
 func (this *Template) Run() (ret []byte, err error) {
@@ -67,7 +65,6 @@ func (this *Template) Run() (ret []byte, err error) {
 	return
 }
 
-
 // Execute the template, return as string
 func (this *Template) String() (ret string, err error) {
 	data, err := this.Run()
@@ -75,10 +72,9 @@ func (this *Template) String() (ret string, err error) {
 	return
 }
 
-
 // Fill a map of keys with data, removing keys that are not found
 func (this *Template) fillData(found map[string]string) {
-	for key, _ := range found {
+	for key := range found {
 		item, err := this.findDataItem(key)
 		if err == nil {
 			if len(item) > 0 {
@@ -90,7 +86,6 @@ func (this *Template) fillData(found map[string]string) {
 	}
 	return
 }
-
 
 // Attempt to find a key in data sources using various case patterns
 func (this *Template) findDataItem(key string) (item []string, err error) {
@@ -114,14 +109,12 @@ func (this *Template) findDataItem(key string) (item []string, err error) {
 	return nil, KeyNotFoundError
 }
 
-
 // Register template functions.
 func (this *Template) funcs() tt.FuncMap {
 	ret := sprig.TxtFuncMap()
 	ret["secret"] = this.funcSecret
 	return ret
 }
-
 
 // Template function to read a Vault secret.
 func (this *Template) funcSecret(path string) (ret map[string]interface{}, err error) {
@@ -144,55 +137,53 @@ func (this *Template) funcSecret(path string) (ret map[string]interface{}, err e
 	if src := FromVaultDocument(this.vaultToken, this.vaultAddr, path); src != nil {
 		ret = src.values
 	} else {
-		err = errors.New("No data from Vault: "+ this.vaultAddr + " " + path)
+		err = errors.New("No data from Vault: " + this.vaultAddr + " " + path)
 	}
 
 	return
 }
 
-
 // Recurse through the parsed template's nodes, adding referenced data fields to the found map.
 // The walking structure is similar to text/template/exec.go:walk()
 func (this *Template) walkNode(node parse.Node, found map[string]string) {
 	switch node := node.(type) {
-		// ActionNode holds an action (something bounded by delimiters; like FieldNodes)
-		case *parse.ActionNode:
-			this.walkNode(node.Pipe, found)
+	// ActionNode holds an action (something bounded by delimiters; like FieldNodes)
+	case *parse.ActionNode:
+		this.walkNode(node.Pipe, found)
 
-		// this is where our data is, we only need the first item in a chain
-		case *parse.FieldNode:
-			if items := strings.Split(strings.Trim(node.String(), "."), "."); len(items) > 0 {
-				found[items[0]] = ""
+	// this is where our data is, we only need the first item in a chain
+	case *parse.FieldNode:
+		if items := strings.Split(strings.Trim(node.String(), "."), "."); len(items) > 0 {
+			found[items[0]] = ""
+		}
+
+	case *parse.IfNode:
+		this.walkNodeIf(node.List, node.ElseList, found)
+
+	case *parse.ListNode:
+		for _, node := range node.Nodes {
+			this.walkNode(node, found)
+		}
+
+	// list of command arguments, including parenthesis
+	case *parse.PipeNode:
+		for _, c := range node.Cmds {
+			for _, a := range c.Args {
+				this.walkNode(a, found)
 			}
+		}
 
-		case *parse.IfNode:
-			this.walkNodeIf(node.List, node.ElseList, found)
+	case *parse.RangeNode:
+		this.walkNodeIf(node.List, node.ElseList, found)
 
-		case *parse.ListNode:
-			for _, node := range node.Nodes {
-				this.walkNode(node, found)
-			}
+	//case *parse.TemplateNode: //not supported
 
-		// list of command arguments, including parenthesis
-		case *parse.PipeNode:
-			for _,c := range node.Cmds {
-				for _, a := range c.Args {
-					this.walkNode(a, found)
-				}
-			}
-
-		case *parse.RangeNode:
-			this.walkNodeIf(node.List, node.ElseList, found)
-
-		//case *parse.TemplateNode: //not supported
-
-		case *parse.WithNode:
-			this.walkNodeIf(node.List, node.ElseList, found)
+	case *parse.WithNode:
+		this.walkNodeIf(node.List, node.ElseList, found)
 	}
 }
 
-
-func (this *Template) walkNodeIf(list, elseList *parse.ListNode,found map[string]string) {
+func (this *Template) walkNodeIf(list, elseList *parse.ListNode, found map[string]string) {
 	if list != nil {
 		this.walkNode(list, found)
 	}

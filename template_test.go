@@ -9,19 +9,16 @@ import (
 	"github.com/smartystreets/gunit"
 )
 
-
 func TestTemplateTestFixture(t *testing.T) {
 	gunit.Run(new(TemplateTestFixture), t)
 }
 
-
 type TemplateTestFixture struct {
 	*gunit.Fixture
 
-	sources []Source
-	template  *Template
+	sources  []Source
+	template *Template
 }
-
 
 func (this *TemplateTestFixture) Setup() {
 	this.sources = []Source{
@@ -47,9 +44,7 @@ func (this *TemplateTestFixture) Setup() {
 	this.template = NewTemplate(this.case1Template(), this.sources...)
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 func (this *TemplateTestFixture) TestInitializeSources() {
 	for _, source := range this.sources {
@@ -57,26 +52,21 @@ func (this *TemplateTestFixture) TestInitializeSources() {
 	}
 }
 
-
 func (this *TemplateTestFixture) TestInitializeContent() {
 	this.So(this.template.Content, should.Equal, this.case1Template())
 }
-
 
 func (this *TemplateTestFixture) TestInitializeReader() {
 	this.So(this.template.reader, should.NotBeEmpty)
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 func (this *TemplateTestFixture) TestSimpleStrings() {
 	x, err := this.template.String()
 	this.So(err, should.Equal, nil)
 	this.So(x, should.Equal, this.getExpected(this.template.Content, this.caseData()))
 }
-
 
 func (this *TemplateTestFixture) TestIf() {
 	this.template.Content = this.case2Template()
@@ -85,20 +75,17 @@ func (this *TemplateTestFixture) TestIf() {
 	this.So(x, should.Equal, this.getExpected(this.case2Template(), this.caseData()))
 }
 
-
 func (this *TemplateTestFixture) TestBadTemplate() {
 	this.template.Content = `{{ .String`
 	_, err := this.template.String()
 	this.So(err, should.NotEqual, nil)
 }
 
-
 func (this *TemplateTestFixture) TestBadTemplateFunction() {
 	this.template.Content = `{{ .String | no_such_function }}`
 	_, err := this.template.String()
 	this.So(err, should.NotEqual, nil)
 }
-
 
 func (this *TemplateTestFixture) TestComplexTemplate() {
 	this.template.Content = `value: {{- $new_var := (or .no_such_string .url) }}{{ $new_var }}`
@@ -107,14 +94,12 @@ func (this *TemplateTestFixture) TestComplexTemplate() {
 	this.So(x, should.Equal, "value:http://www.google.com")
 }
 
-
 func (this *TemplateTestFixture) TestSecretInvalid() {
 	this.template.Content = `MyEmail: "{{with secret "secret/operations/email"}}{{.string}}{{end}}"`
 	this.So(func() { this.template.String() }, should.Panic)
 	this.So(this.template.vaultAddr, should.Equal, "http://localhost:29999")
 	this.So(this.template.vaultToken, should.Equal, "1234-567-89012")
 }
-
 
 func (this *TemplateTestFixture) TestSecretValid() {
 	svr := dummyHTTP(false, nil)
@@ -128,14 +113,12 @@ func (this *TemplateTestFixture) TestSecretValid() {
 	this.So(x, should.Equal, `MyEmail: "String"`)
 }
 
-
 func (this *TemplateTestFixture) TestSprig() {
 	this.template.Content = `{{ "hello!" | upper | repeat 5 }}`
 	x, err := this.template.String()
 	this.So(err, should.BeEmpty)
 	this.So(x, should.Equal, `HELLO!HELLO!HELLO!HELLO!HELLO!`)
 }
-
 
 func (this *TemplateTestFixture) TestFromTemplateJSON() {
 	actual := FromTemplateJSON(this.template)
@@ -147,9 +130,7 @@ func (this *TemplateTestFixture) TestFromTemplateJSON() {
 	this.So(x[0], should.Equal, "42")
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 func (this *TemplateTestFixture) case1Template() string {
 	return `{
@@ -168,7 +149,6 @@ func (this *TemplateTestFixture) case1Template() string {
 }`
 }
 
-
 func (this *TemplateTestFixture) case2Template() string {
 	return `
 {{if .Url -}}
@@ -179,25 +159,23 @@ func (this *TemplateTestFixture) case2Template() string {
 `
 }
 
-
 func (this *TemplateTestFixture) caseData() map[string]string {
 	//make a template-valid data map (e.g., [A-Za-z0-9_])
 	return map[string]string{
-		"String": this.template.reader.String("string"),
+		"String":         this.template.reader.String("string"),
 		"StringNoValues": this.template.reader.String("string-no-values"),
-		"Int": this.template.reader.String("int"),
-		"IntBad": this.template.reader.String("int-bad"),
-		"Bool": this.template.reader.String("bool"),
-		"BoolBad": this.template.reader.String("bool-bad"),
-		"Url": this.template.reader.String("url"),
-		"UrlBad": this.template.reader.String("url-bad"),
-		"Duration": this.template.reader.String("duration"),
-		"DurationBad": this.template.reader.String("duration-bad"),
-		"Time": this.template.reader.String("time"),
-		"TimeBad": this.template.reader.String("time-bad"),
+		"Int":            this.template.reader.String("int"),
+		"IntBad":         this.template.reader.String("int-bad"),
+		"Bool":           this.template.reader.String("bool"),
+		"BoolBad":        this.template.reader.String("bool-bad"),
+		"Url":            this.template.reader.String("url"),
+		"UrlBad":         this.template.reader.String("url-bad"),
+		"Duration":       this.template.reader.String("duration"),
+		"DurationBad":    this.template.reader.String("duration-bad"),
+		"Time":           this.template.reader.String("time"),
+		"TimeBad":        this.template.reader.String("time-bad"),
 	}
 }
-
 
 // Use straight text/template with known data to check output
 func (this *TemplateTestFixture) getExpected(template string, data map[string]string) string {

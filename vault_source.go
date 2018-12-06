@@ -70,7 +70,7 @@ func (this *VaultSource) checkAddress(address string) (ret *url.URL) {
 		log.Panic("No Vault address provided nor in environment VAULT_ADDR")
 	}
 
-	if ! strings.Contains(address, "//") {
+	if !strings.Contains(address, "//") {
 		address = "//" + address
 	}
 
@@ -138,14 +138,14 @@ func parseDocument(responseBody io.Reader) (*vaultDocument, error) {
 
 func (this *VaultSource) dialTLS(network, address string) (net.Conn, error) {
 	return tls.Dial(network, address, &tls.Config{
-		ServerName: this.address.Hostname(),
+		ServerName:         this.address.Hostname(),
 		InsecureSkipVerify: "" != os.Getenv("VAULT_SKIP_VERIFY"),
 	})
 }
 
 func (this *VaultSource) requestDocument(addr url.URL) (*http.Response, error) {
 	httpClient := &http.Client{
-		Timeout:   time.Duration(5 * time.Second),
+		Timeout: time.Duration(5 * time.Second),
 	}
 
 	if addr.Scheme == "https" {

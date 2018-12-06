@@ -8,29 +8,26 @@ import (
 
 // DirectorySource makes a key-value mapping available of filename (key) to file contents (value).
 type DirectorySource struct {
-	files map[string]string
+	files     map[string]string
 	mustExist bool
-	path string
+	path      string
 }
-
 
 // Reads the directory path provided. If the path does not exist, a panic will result.
 func FromDirectory(path string) *DirectorySource {
 	return &DirectorySource{
 		mustExist: true,
-		path: path,
+		path:      path,
 	}
 }
-
 
 // Reads the directory path provided, if it exists.
 func FromOptionalDirectory(path string) *DirectorySource {
 	return &DirectorySource{
 		mustExist: false,
-		path: path,
+		path:      path,
 	}
 }
-
 
 func (this *DirectorySource) Strings(key string) ([]string, error) {
 	key = sanitizeKey(strings.ToLower(key))
@@ -47,7 +44,6 @@ func (this *DirectorySource) Strings(key string) ([]string, error) {
 	return nil, KeyNotFoundError
 }
 
-
 func (this *DirectorySource) Initialize() {
 	this.files = make(map[string]string, 32)
 
@@ -58,7 +54,7 @@ func (this *DirectorySource) Initialize() {
 		}
 	} else {
 		for _, file := range files {
-			if ! file.IsDir() {
+			if !file.IsDir() {
 				key := sanitizeKey(strings.ToLower(file.Name()))
 				this.files[key] = file.Name()
 			}

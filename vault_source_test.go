@@ -11,22 +11,17 @@ import (
 	"github.com/smartystreets/gunit"
 )
 
-
 func TestVaultSourceFixture(t *testing.T) {
 	gunit.Run(new(VaultTestFixture), t)
 }
-
 
 type VaultTestFixture struct {
 	*gunit.Fixture
 }
 
-
 func (this *VaultTestFixture) Setup() {}
 
-
 ////////////////////////////////////////////////////////////////
-
 
 func (this *VaultTestFixture) TestEnvironment() {
 	path := "/my/path/here"
@@ -47,11 +42,9 @@ func (this *VaultTestFixture) TestEnvironment() {
 	this.So(vault.documentName, should.Equal, path)
 }
 
-
 func (this *VaultTestFixture) TestBadEndpointPanics() {
 	this.So(func() { FromVaultDocument("xyz", "localhost:29999", "") }, should.Panic)
 }
-
 
 func (this *VaultTestFixture) TestValidHTTPEndpoint() {
 	svr := dummyHTTP(false, nil)
@@ -67,7 +60,6 @@ func (this *VaultTestFixture) TestValidHTTPEndpoint() {
 	this.So(err, should.BeEmpty)
 	this.So(data, should.NotBeEmpty)
 }
-
 
 func (this *VaultTestFixture) TestValidHTTPSEndpoint() {
 	svr := dummyHTTP(true, nil)
@@ -89,7 +81,6 @@ func (this *VaultTestFixture) TestValidHTTPSEndpoint() {
 	this.So(data, should.NotBeEmpty)
 }
 
-
 func (this *VaultTestFixture) TestValidUnauthenticatedEndpoint() {
 	svr := dummyHTTP(false, httpHandleUnauthenticated)
 	defer svr.Close()
@@ -97,9 +88,7 @@ func (this *VaultTestFixture) TestValidUnauthenticatedEndpoint() {
 	this.So(func() { FromVaultDocument("xyz", svr.URL, "") }, should.Panic)
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 // Construct a dummy http(s) server
 func dummyHTTP(isTLS bool, handler func(http.ResponseWriter, *http.Request)) (server *httptest.Server) {
@@ -116,14 +105,12 @@ func dummyHTTP(isTLS bool, handler func(http.ResponseWriter, *http.Request)) (se
 	return
 }
 
-
 // Valid response with simplistic data
 func httpHandleData(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("content-type", "application/json")
 	response.WriteHeader(http.StatusOK)
 	fmt.Fprintln(response, `{"lease_id": "1", "data": {"bool": true, "string": "String"}}`)
 }
-
 
 // Forbidden response
 func httpHandleUnauthenticated(response http.ResponseWriter, request *http.Request) {

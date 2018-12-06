@@ -14,24 +14,21 @@ func TestDirectorySourceFixture(t *testing.T) {
 	gunit.Run(new(DirectorySourceFixture), t)
 }
 
-
 type DirectorySourceFixture struct {
 	*gunit.Fixture
 
 	dirPath string
-	files map[string]string
+	files   map[string]string
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 // test c'tor
 func (this *DirectorySourceFixture) Setup() {
 	if path, err := ioutil.TempDir("", "dirSrc"); err == nil {
 		this.dirPath = path
 		this.files = map[string]string{
-			"File1": "My file contents",
+			"File1":                   "My file contents",
 			"A-name_withMixed&Casing": "ContEnT$ _with_\n{{mixed}} Casing\n",
 		}
 
@@ -46,7 +43,6 @@ func (this *DirectorySourceFixture) Setup() {
 	}
 }
 
-
 // test d'tor
 func (this *DirectorySourceFixture) Teardown() {
 	if err := os.RemoveAll(this.dirPath); err != nil {
@@ -54,22 +50,18 @@ func (this *DirectorySourceFixture) Teardown() {
 	}
 }
 
-
 ////////////////////////////////////////////////////////////////
-
 
 func (this *DirectorySourceFixture) TestBadDirectoryPanic() {
 	src := FromDirectory("&path/@should/!not/*exist")
 	this.So(func() { src.Initialize() }, should.Panic)
 }
 
-
 func (this *DirectorySourceFixture) TestBadDirectoryNotPanic() {
 	src := FromOptionalDirectory("&path/@should/!not/*exist")
 	src.Initialize()
 	this.So(len(src.files), should.Equal, 0)
 }
-
 
 func (this *DirectorySourceFixture) TestInitalize() {
 	src := FromDirectory(this.dirPath)
@@ -78,7 +70,6 @@ func (this *DirectorySourceFixture) TestInitalize() {
 	this.So(src.mustExist, should.Equal, true)
 	this.So(len(src.files), should.Equal, 2)
 }
-
 
 func (this *DirectorySourceFixture) TestStrings() {
 	src := FromDirectory(this.dirPath)
@@ -92,7 +83,6 @@ func (this *DirectorySourceFixture) TestStrings() {
 	}
 }
 
-
 func (this *DirectorySourceFixture) TestStringsCase() {
 	src := FromDirectory(this.dirPath)
 	src.Initialize()
@@ -105,7 +95,6 @@ func (this *DirectorySourceFixture) TestStringsCase() {
 		this.So(data[0], should.Equal, val)
 	}
 }
-
 
 func (this *DirectorySourceFixture) TestStringsMissing() {
 	src := FromDirectory(this.dirPath)
