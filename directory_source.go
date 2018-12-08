@@ -21,6 +21,14 @@ func FromDirectory(path string) *DirectorySource {
 	}
 }
 
+func FromOptionalDirectories(paths ...string) *multiSource {
+	var sources []Source
+	for _, path := range paths {
+		sources = append(sources, FromOptionalDirectory(path))
+	}
+	return MultiSource(sources...)
+}
+
 // Reads the directory path provided, if it exists.
 func FromOptionalDirectory(path string) *DirectorySource {
 	return &DirectorySource{

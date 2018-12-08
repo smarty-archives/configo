@@ -3,6 +3,7 @@ package configo
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"strings"
 	tt "text/template"
 	"text/template/parse"
@@ -27,6 +28,18 @@ func NewTemplate(content string, sources ...Source) *Template {
 		Content: content,
 		reader:  NewReader(sources...),
 	}
+}
+
+func FromTemplateJSONFileWithSources(templatePath, confJson string, directories ...string) *JSONSource {
+	data, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		return nil
+	}
+	return FromTemplateJSON(NewTemplate(string(data),
+		FromEnvironment(),
+		FromOptionalDirectories(directories...),
+		FromOptionalJSONFile(confJson),
+	))
 }
 
 // Parses the provided go json template, substituting data from provided sources, and returning it as a JSON source.
