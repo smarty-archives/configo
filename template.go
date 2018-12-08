@@ -3,7 +3,6 @@ package configo
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
 	"strings"
 	tt "text/template"
 	"text/template/parse"
@@ -26,10 +25,9 @@ type Template struct {
 func NewTemplate(content string, sources ...Source) *Template {
 	return &Template{
 		Content: content,
-		reader: NewReader(sources...),
+		reader:  NewReader(sources...),
 	}
 }
-
 
 // Parses the provided go json template, substituting data from provided sources, and returning it as a JSON source.
 // Panics if there is a template error.
