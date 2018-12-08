@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"strings"
-	tt "text/template"
+	"text/template"
 	"text/template/parse"
 
 	"github.com/Masterminds/sprig"
@@ -44,8 +44,8 @@ func FromTemplateJSONFileWithSources(templatePath, confJson string, directories 
 
 // Parses the provided go json template, substituting data from provided sources, and returning it as a JSON source.
 // Panics if there is a template error.
-func FromTemplateJSON(template *Template) *JSONSource {
-	if data, err := template.Run(); err == nil {
+func FromTemplateJSON(item *Template) *JSONSource {
+	if data, err := item.Run(); err == nil {
 		return FromJSONContent(data)
 	} else {
 		panic(err)
@@ -55,7 +55,7 @@ func FromTemplateJSON(template *Template) *JSONSource {
 // Execute the template
 func (this *Template) Run() (ret []byte, err error) {
 	buf := new(bytes.Buffer)
-	tpl := tt.New("self").Funcs(this.funcs())
+	tpl := template.New("self").Funcs(this.funcs())
 
 	if tpl, err = tpl.Parse(this.Content); err != nil {
 		return
@@ -121,7 +121,7 @@ func (this *Template) findDataItem(key string) (item []string, err error) {
 }
 
 // Register template functions.
-func (this *Template) funcs() tt.FuncMap {
+func (this *Template) funcs() template.FuncMap {
 	ret := sprig.TxtFuncMap()
 	ret["secret"] = this.funcSecret
 	return ret
