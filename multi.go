@@ -1,21 +1,15 @@
 package configo
 
-type multiSource struct {
-	sources []Source
-}
+type MultiSource []Source
 
-func MultiSource(sources ...Source) *multiSource {
-	return &multiSource{sources: sources}
-}
-
-func (this *multiSource) Initialize() {
-	for _, source := range this.sources {
+func (this MultiSource) Initialize() {
+	for _, source := range this {
 		source.Initialize()
 	}
 }
 
-func (this *multiSource) Strings(key string) (result []string, err error) {
-	for _, source := range this.sources {
+func (this MultiSource) Strings(key string) (result []string, err error) {
+	for _, source := range this {
 		result, err = source.Strings(key)
 		if err == nil {
 			return result, err
