@@ -30,6 +30,17 @@ func newVault(token, address, documentName string) *VaultSource {
 }
 
 func FromVaultDocument(token, address, documentName string) *JSONSource {
+	for i := 0; i < maxRetries; i++ {
+		if result := fromVaultDocument(token, address, documentName); result != nil {
+			return result
+		}
+
+		time.Sleep(requestTimeout)
+	}
+
+	panic("[ERROR] Unable to get document from Vault.")
+}
+func fromVaultDocument(token, address, documentName string) *JSONSource {
 	vault := newVault(token, address, documentName)
 
 	for _, ip := range vault.getIPList() {
@@ -42,7 +53,7 @@ func FromVaultDocument(token, address, documentName string) *JSONSource {
 		}
 		return FromJSONObject(document)
 	}
-	log.Panic("Unable to get document from Vault")
+
 	return nil
 }
 
@@ -273,6 +284,6 @@ type vaultAuthentication struct {
 /////////////////////////////////////////
 
 const (
-	maxRetries     = 7
+	maxRetries     = 3
 	requestTimeout = time.Second * 5
 )
