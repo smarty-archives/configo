@@ -145,7 +145,7 @@ func (this *VaultSource) dialTLS(network, address string) (net.Conn, error) {
 
 func (this *VaultSource) requestDocument(addr url.URL) (*http.Response, error) {
 	httpClient := &http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		Timeout: time.Duration(requestTimeout),
 	}
 
 	if addr.Scheme == "https" {
@@ -215,10 +215,10 @@ type Client interface {
 type RetryClient struct {
 	inner   Client
 	retries int
-	timeout int
+	timeout time.Duration
 }
 
-func NewRetryClient(inner Client, retries, timeout int) *RetryClient {
+func NewRetryClient(inner Client, retries int, timeout time.Duration) *RetryClient {
 	return &RetryClient{
 		inner:   inner,
 		retries: retries,
@@ -232,6 +232,8 @@ func (this *RetryClient) Do(request *http.Request) (response *http.Response, err
 		if err == nil {
 			break
 		}
+
+		time.Sleep(this.timeout)
 	}
 	return response, err
 }
@@ -271,6 +273,6 @@ type vaultAuthentication struct {
 /////////////////////////////////////////
 
 const (
-	maxRetries     = 2
-	requestTimeout = 2
+	maxRetries     = 7
+	requestTimeout = time.Second * 5
 )
