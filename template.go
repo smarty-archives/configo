@@ -52,7 +52,7 @@ func FromTemplateJSON(item *Template) *JSONSource {
 	}
 }
 
-// Execute the template
+// Run executes the template
 func (this *Template) Run() (ret []byte, err error) {
 	buf := new(bytes.Buffer)
 	tpl := template.New("self").Funcs(this.funcs())
@@ -76,7 +76,7 @@ func (this *Template) Run() (ret []byte, err error) {
 	return
 }
 
-// Execute the template, return as string
+// String executes the template, return as string
 func (this *Template) String() (ret string, err error) {
 	data, err := this.Run()
 	ret = string(data)

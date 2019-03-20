@@ -16,7 +16,7 @@ func FromDefaultCLIConfigFileSource() *CLIConfigFileSource {
 	return FromCLIConfigFileSource("config")
 }
 
-// FromDefaultCLIConfigFileSource registers a command line flag with the given flagName for specifying
+// FromCLIConfigFileSource registers a command line flag with the given flagName for specifying
 // an alternate JSON config file.
 func FromCLIConfigFileSource(flagName string) *CLIConfigFileSource {
 	return &CLIConfigFileSource{
