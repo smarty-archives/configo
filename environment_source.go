@@ -25,7 +25,7 @@ func FromEnvironmentWithPrefix(prefix string) *EnvironmentSource {
 	return FromEnvironmentCustomSeparator(prefix, "|")
 }
 
-// FromEnvironmentWithPrefix creates an envirnoment source capable of
+// FromEnvironmentCustomSeparator creates an envirnoment source capable of
 // parsing values separated by the specified character.
 func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource {
 	return &EnvironmentSource{prefix: prefix, separator: separator}

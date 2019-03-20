@@ -13,7 +13,7 @@ type DirectorySource struct {
 	path      string
 }
 
-// Reads the directory path provided. If the path does not exist, a panic will result.
+// FromDirectory reads the directory path provided. If the path does not exist, a panic will result.
 func FromDirectory(path string) *DirectorySource {
 	return &DirectorySource{
 		mustExist: true,
@@ -29,7 +29,7 @@ func FromOptionalDirectories(paths ...string) MultiSource {
 	return sources
 }
 
-// Reads the directory path provided, if it exists.
+// FromOptionalDirectory reads the directory path provided, if it exists.
 func FromOptionalDirectory(path string) *DirectorySource {
 	return &DirectorySource{
 		mustExist: false,
