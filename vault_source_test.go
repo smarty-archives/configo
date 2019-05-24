@@ -12,6 +12,9 @@ import (
 )
 
 func TestVaultSourceFixture(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	gunit.Run(new(VaultTestFixture), t)
 }
 

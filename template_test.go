@@ -10,6 +10,9 @@ import (
 )
 
 func TestTemplateTestFixture(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	gunit.Run(new(TemplateTestFixture), t)
 }
 
