@@ -1,17 +1,15 @@
 #!/usr/bin/make -f
 
-default: test
+test:
+	go test -timeout=1s -short ./...
 
-test: build
-	go test -short
+compile:
+	go build ./...
 
-cover: build
-	go test -coverprofile=coverage.out
-	go tool cover -html=coverage.out
-
-build:
-	go build
+build: test compile
 
 document:
-	go install github.com/robertkrimen/godocdown/godocdown
-	godocdown > README.md
+	go install github.com/robertkrimen/godocdown/godocdown \
+		&& godocdown > README.md
+
+.PHONY: test compile build document
