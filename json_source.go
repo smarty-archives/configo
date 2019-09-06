@@ -32,8 +32,8 @@ func FromJSONFile(filename string) *JSONSource {
 	}
 }
 
-// If the provided condition returns true, the specified filename
-// is required and must be found; otherwise loading the file is optional.
+// FromConditionalJSONFile loads a required file if the provided condition returns true;
+// otherwise loading the file is optional.
 func FromConditionalJSONFile(filename string, condition func() bool) *JSONSource {
 	if condition() {
 		return FromJSONFile(filename)

@@ -77,7 +77,7 @@ func SetOutput(writer io.Writer) CLI {
 	return func(this *CLISource) { this.flags.SetOutput(writer); this.output = writer }
 }
 
-// Parses the internal *flag.FlagSet. Call only after making all Flag calls.
+// Initialize parses the internal *flag.FlagSet. Call only after making all Flag calls.
 func (this *CLISource) Initialize() {
 	this.flags.Usage = this.usage
 	this.flags.Parse(this.source[1:])
