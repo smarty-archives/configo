@@ -12,20 +12,20 @@ type EnvironmentSource struct {
 	separator string
 }
 
-// FromEnvironment creates an envirnoment source capable of
+// FromEnvironment creates an environment source capable of
 // parsing values separated by the pipe character.
 func FromEnvironment() *EnvironmentSource {
 	return FromEnvironmentCustomSeparator("", "|")
 }
 
-// FromEnvironmentWithPrefix creates an envirnoment source capable of:
+// FromEnvironmentWithPrefix creates an environment source capable of:
 // - reading values with keys all beginning with the provided prefix,
 // - parsing values separated by the pipe character.
 func FromEnvironmentWithPrefix(prefix string) *EnvironmentSource {
 	return FromEnvironmentCustomSeparator(prefix, "|")
 }
 
-// FromEnvironmentCustomSeparator creates an envirnoment source capable of
+// FromEnvironmentCustomSeparator creates an environment source capable of
 // parsing values separated by the specified character.
 func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource {
 	return &EnvironmentSource{prefix: prefix, separator: separator}
