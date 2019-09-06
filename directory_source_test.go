@@ -3,6 +3,7 @@ package configo
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -21,19 +22,19 @@ type DirectorySourceFixture struct {
 	files   map[string]string
 }
 
-////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////
 
 // test c'tor
 func (this *DirectorySourceFixture) Setup() {
-	if path, err := ioutil.TempDir("", "dirSrc"); err == nil {
-		this.dirPath = path
+	if directory, err := ioutil.TempDir("", "dirSrc"); err == nil {
+		this.dirPath = directory
 		this.files = map[string]string{
 			"File1":                   "My file contents",
 			"A-name_withMixed&Casing": "ContEnT$ _with_\n{{mixed}} Casing\n",
 		}
 
 		for filename, content := range this.files {
-			full := path + "/" + filename
+			full := path.Join(directory, filename)
 			if err := ioutil.WriteFile(full, []byte(content), 0600); err != nil {
 				this.Error("Error writing test files:", err)
 			}
@@ -50,7 +51,7 @@ func (this *DirectorySourceFixture) Teardown() {
 	}
 }
 
-////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////
 
 func (this *DirectorySourceFixture) TestBadDirectoryPanic() {
 	src := FromDirectory("&path/@should/!not/*exist")

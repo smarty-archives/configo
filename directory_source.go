@@ -3,6 +3,7 @@ package configo
 import (
 	"io/ioutil"
 	"log"
+	"path"
 	"strings"
 )
 
@@ -21,10 +22,10 @@ func FromDirectory(path string) *DirectorySource {
 	}
 }
 
-func FromOptionalDirectories(paths ...string) MultiSource {
+func FromOptionalDirectories(directories ...string) MultiSource {
 	var sources MultiSource
-	for _, path := range paths {
-		sources = append(sources, FromOptionalDirectory(path))
+	for _, directory := range directories {
+		sources = append(sources, FromOptionalDirectory(directory))
 	}
 	return sources
 }
@@ -40,16 +41,17 @@ func FromOptionalDirectory(path string) *DirectorySource {
 func (this *DirectorySource) Strings(key string) ([]string, error) {
 	key = sanitizeKey(strings.ToLower(key))
 
-	if filename, found := this.files[key]; found {
-		path := this.path + "/" + filename
-		if data, err := ioutil.ReadFile(path); err == nil {
-			return []string{string(data)}, nil
-		} else {
-			return nil, err
-		}
+	filename, found := this.files[key]
+	if !found {
+		return nil, ErrKeyNotFound
 	}
 
-	return nil, ErrKeyNotFound
+	data, err := ioutil.ReadFile(path.Join(this.path, filename))
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{string(data)}, nil
 }
 
 func (this *DirectorySource) Initialize() {
