@@ -13,8 +13,6 @@
 // These basic sources have been composed into additional sources, made
 // available via the following constructor methods:
 //
-//     - FromDevelopmentOnlyDefaults()
-//     - FromRequiredInProductionJSONFile()
 //     - FromDefaultCLIConfigFileSource()
 //     - FromCLIConfigFileSource(path string)
 //     - etc...
