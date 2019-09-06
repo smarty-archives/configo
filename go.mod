@@ -1,4 +1,4 @@
-module github.com/smartystreets/configo
+module github.com/smartystreets/configo/v2
 
 require (
 	github.com/smartystreets/assertions v1.0.1
