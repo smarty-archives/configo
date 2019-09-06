@@ -38,7 +38,7 @@ func (this *CLIConfigFileSource) Initialize() {
 // Strings reads the key from the JSON source if it was successfully loaded during Initialize.
 func (this *CLIConfigFileSource) Strings(key string) ([]string, error) {
 	if this.json == nil {
-		return nil, KeyNotFoundError
+		return nil, ErrKeyNotFound
 	}
 	return this.json.Strings(key)
 }

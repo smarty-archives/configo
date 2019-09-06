@@ -109,7 +109,7 @@ func (this *CLISource) visitor(flag *flag.Flag) {
 func (this *CLISource) Strings(key string) ([]string, error) {
 	value, found := this.values[key]
 	if !found {
-		return nil, KeyNotFoundError
+		return nil, ErrKeyNotFound
 	}
 	return []string{value}, nil
 }

@@ -26,7 +26,7 @@ func (this *EnvironmentSourceFixture) TestNonExistentValue() {
 	values, err := this.source.Strings("notfound")
 
 	this.So(values, should.BeEmpty)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 }
 func (this *EnvironmentSourceFixture) TestKnownValue() {
 	setEnvironment("configo_Found_Single", "hello")

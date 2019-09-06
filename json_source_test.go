@@ -22,7 +22,7 @@ func (this *JSONSourceFixture) TestParseMalformedJSONPanics() {
 	this.So(func() { FromJSONContent(malformed) }, should.Panic)
 }
 func (this *JSONSourceFixture) TestNonExistentSingleValue() {
-	this.assertFailure(`{}`, "key", KeyNotFoundError)
+	this.assertFailure(`{}`, "key", ErrKeyNotFound)
 }
 
 func (this *JSONSourceFixture) TestReadSingleStringValue() {

@@ -102,5 +102,5 @@ func (this *DirectorySourceFixture) TestStringsMissing() {
 
 	data, err := src.Strings("key/does/not-exist")
 	this.So(data, should.BeEmpty)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 }

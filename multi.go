@@ -15,5 +15,5 @@ func (this MultiSource) Strings(key string) (result []string, err error) {
 			return result, err
 		}
 	}
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }

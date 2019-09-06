@@ -21,7 +21,7 @@ type DefaultSourceFixture struct {
 }
 
 func (this *DefaultSourceFixture) TestEmptyKeyReportsNoValues() {
-	this.assertError(KeyNotFoundError)
+	this.assertError(ErrKeyNotFound)
 }
 
 func (this *DefaultSourceFixture) TestAddedStringCanBeRetrieved() {

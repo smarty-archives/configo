@@ -59,7 +59,7 @@ func (this *Reader) Strings(key string) []string {
 
 // StringsError returns all values associated with the given key with an error
 // if the key does not exist. It does so by searching it sources, in the order
-// they were provided, and returns the first non-error result or KeyNotFoundError.
+// they were provided, and returns the first non-error result or ErrKeyNotFound.
 func (this *Reader) StringsError(key string) ([]string, error) {
 	for _, alias := range this.resolvePossibleKeys(key) {
 		if values, err := this.stringsError(alias); err == nil {
@@ -67,7 +67,7 @@ func (this *Reader) StringsError(key string) ([]string, error) {
 		}
 	}
 
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }
 func (this *Reader) stringsError(key string) ([]string, error) {
 	for _, source := range this.sources {
@@ -80,7 +80,7 @@ func (this *Reader) stringsError(key string) ([]string, error) {
 		}
 	}
 
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }
 
 func (this *Reader) resolvePossibleKeys(key string) []string {
@@ -194,7 +194,7 @@ func (this *Reader) IntsError(key string) ([]int, error) {
 	for i, r := range raw {
 		ints[i], err = strconv.Atoi(r)
 		if err != nil {
-			return nil, MalformedValueError
+			return nil, ErrMalformedValue
 		}
 	}
 
@@ -251,7 +251,7 @@ func (this *Reader) IntError(key string) (int, error) {
 
 	number, err := strconv.Atoi(raw)
 	if err != nil {
-		return 0, MalformedValueError
+		return 0, ErrMalformedValue
 	}
 
 	return number, nil
@@ -307,7 +307,7 @@ func (this *Reader) BoolError(key string) (bool, error) {
 
 	value, err := strconv.ParseBool(raw)
 	if err != nil {
-		return false, MalformedValueError
+		return false, ErrMalformedValue
 	}
 
 	return value, nil
@@ -365,7 +365,7 @@ func (this *Reader) URLsError(key string) ([]url.URL, error) {
 	for i, r := range raw {
 		parsed, err := url.Parse(r)
 		if err != nil {
-			return nil, MalformedValueError
+			return nil, ErrMalformedValue
 		}
 		urls[i] = *parsed
 	}
@@ -423,7 +423,7 @@ func (this *Reader) URLError(key string) (url.URL, error) {
 
 	parsed, err := url.Parse(raw)
 	if err != nil {
-		return url.URL{}, MalformedValueError
+		return url.URL{}, ErrMalformedValue
 	}
 
 	return *parsed, nil
@@ -480,7 +480,7 @@ func (this *Reader) DurationError(key string) (time.Duration, error) {
 
 	parsed, err := time.ParseDuration(raw)
 	if err != nil {
-		return 0, MalformedValueError
+		return 0, ErrMalformedValue
 	}
 
 	return parsed, nil
@@ -537,7 +537,7 @@ func (this *Reader) TimeError(key string, format string) (time.Time, error) {
 
 	parsed, err := time.Parse(format, raw)
 	if err != nil {
-		return time.Time{}, MalformedValueError
+		return time.Time{}, ErrMalformedValue
 	}
 
 	return parsed, nil

@@ -20,4 +20,4 @@ type nopSource struct{}
 
 func (*nopSource) Initialize() {}
 
-func (*nopSource) Strings(key string) ([]string, error) { return nil, KeyNotFoundError }
+func (*nopSource) Strings(key string) ([]string, error) { return nil, ErrKeyNotFound }

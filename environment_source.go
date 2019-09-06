@@ -31,7 +31,7 @@ func FromEnvironmentCustomSeparator(prefix, separator string) *EnvironmentSource
 	return &EnvironmentSource{prefix: prefix, separator: separator}
 }
 
-// Strings reads the environment variable specified by key and returns the value or KeyNotFoundError.
+// Strings reads the environment variable specified by key and returns the value or ErrKeyNotFound.
 func (this *EnvironmentSource) Strings(key string) ([]string, error) {
 	key = this.prefix + sanitizeKey(key)
 
@@ -47,7 +47,7 @@ func (this *EnvironmentSource) Strings(key string) ([]string, error) {
 		return strings.Split(value, this.separator), nil
 	}
 
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }
 func sanitizeKey(key string) string {
 	if strings.HasPrefix(key, "env:") {

@@ -79,11 +79,11 @@ func convertToString(value interface{}) string {
 	}
 }
 
-// Strings returns all values associated with the given key, or KeyNotFoundError.
+// Strings returns all values associated with the given key, or ErrKeyNotFound.
 func (this *DefaultSource) Strings(key string) ([]string, error) {
 	values, found := this.settings[key]
 	if !found {
-		return nil, KeyNotFoundError
+		return nil, ErrKeyNotFound
 	}
 
 	return values, nil

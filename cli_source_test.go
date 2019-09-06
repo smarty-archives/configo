@@ -45,7 +45,7 @@ func (this *CLISourceFixture) TestFlagNotPassed__NotFound() {
 
 	var expectedValue []string // nil
 	this.So(values, should.Resemble, expectedValue)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 }
 
 func (this *CLISourceFixture) TestFlagNotDefined__NoValuesReturned() {
@@ -59,7 +59,7 @@ func (this *CLISourceFixture) TestFlagNotDefined__NoValuesReturned() {
 
 	var expectedValue []string // nil
 	this.So(values, should.Resemble, expectedValue)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 }
 
 func (this *CLISourceFixture) TestBooleanFlagDefined() {
@@ -87,11 +87,11 @@ func (this *CLISourceFixture) TestBooleanFlagDefined() {
 
 	values, err = this.source.Strings("flagname4")
 	this.So(values, should.BeNil)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 
 	values, err = this.source.Strings("flagname5")
 	this.So(values, should.BeNil)
-	this.So(err, should.Equal, KeyNotFoundError)
+	this.So(err, should.Equal, ErrKeyNotFound)
 }
 
 func (this *CLISourceFixture) TestUsageMessage() {

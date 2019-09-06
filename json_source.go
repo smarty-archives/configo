@@ -73,7 +73,7 @@ func (this *JSONSource) Strings(key string) ([]string, error) {
 		return toStrings(item), nil
 	}
 
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }
 
 func toStrings(value interface{}) (values []string) {

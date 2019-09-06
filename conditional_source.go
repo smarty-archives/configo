@@ -15,10 +15,10 @@ func NewConditionalSource(condition func() bool, pairs ...DefaultPair) *Conditio
 	}
 }
 
-// Strings returns the value of the corresponding key, or KeyNotFoundError if the condition is false.
+// Strings returns the value of the corresponding key, or ErrKeyNotFound if the condition is false.
 func (this *ConditionalSource) Strings(key string) ([]string, error) {
 	if !this.condition() {
-		return nil, KeyNotFoundError
+		return nil, ErrKeyNotFound
 	}
 
 	return this.inner.Strings(key)

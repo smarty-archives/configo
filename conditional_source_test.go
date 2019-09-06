@@ -24,7 +24,7 @@ func (this *ConditionalSourceFixture) Setup() {
 }
 
 func (this *ConditionalSourceFixture) TestEmptyKeyReportsNoValues() {
-	this.assertError(KeyNotFoundError)
+	this.assertError(ErrKeyNotFound)
 }
 
 func (this *ConditionalSourceFixture) TestAddingMultipleStringsRetrievesAll() {
@@ -38,7 +38,7 @@ func (this *ConditionalSourceFixture) TestFalseConditionReportsNoValues() {
 	this.addValues("Hello, World!")
 	this.active = false
 
-	this.assertError(KeyNotFoundError)
+	this.assertError(ErrKeyNotFound)
 }
 
 func (this *ConditionalSourceFixture) addValues(values ...interface{}) {

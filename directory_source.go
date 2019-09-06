@@ -49,7 +49,7 @@ func (this *DirectorySource) Strings(key string) ([]string, error) {
 		}
 	}
 
-	return nil, KeyNotFoundError
+	return nil, ErrKeyNotFound
 }
 
 func (this *DirectorySource) Initialize() {
